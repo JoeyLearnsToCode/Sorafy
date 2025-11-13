@@ -1,0 +1,5 @@
+{
+  "name": "Sorafy: Sora-2 Prompt Studio",
+  "description": "A web application to generate, iterate, and optimize prompts for the sora-2 text-to-video generation model with the help of Gemini.",
+  "requestFramePermissions": []
+}
