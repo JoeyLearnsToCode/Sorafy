@@ -90,6 +90,11 @@ export const translations = {
     'chat.delete_button': 'Delete',
     'chat.save_button': 'Save',
     'chat.cancel_button': 'Cancel',
+    'sidebar.settings.import': 'Import History',
+    'sidebar.settings.export_all': 'Export All History',
+    'sidebar.export_session': 'Export Session',
+    'sidebar.import.success': 'Successfully imported {count} session(s).',
+    'sidebar.import.error': 'Failed to import sessions. Invalid file format.',
   },
   zh: {
     'app.title': 'Sorafy',
@@ -128,5 +133,10 @@ export const translations = {
     'chat.delete_button': '删除',
     'chat.save_button': '保存',
     'chat.cancel_button': '取消',
+    'sidebar.settings.import': '导入历史记录',
+    'sidebar.settings.export_all': '导出全部历史',
+    'sidebar.export_session': '导出会话',
+    'sidebar.import.success': '成功导入 {count} 个会话。',
+    'sidebar.import.error': '导入会话失败。文件格式无效。',
   },
 };

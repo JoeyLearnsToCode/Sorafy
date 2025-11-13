@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Session, AppSettings, Language, Theme } from '../types';
-import { PlusIcon, MessageSquareIcon, SunIcon, MoonIcon, MoreHorizontalIcon, SparklesIcon, ChevronLeftIcon } from './icons';
+import { PlusIcon, MessageSquareIcon, SunIcon, MoonIcon, MoreHorizontalIcon, SparklesIcon, ChevronLeftIcon, UploadIcon, DownloadIcon } from './icons';
 import { translations } from '../constants';
 
 interface HistorySidebarProps {
@@ -15,6 +15,9 @@ interface HistorySidebarProps {
   onAutoRenameSession: (id: string) => Promise<void>;
   settings: AppSettings;
   onUpdateSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  onExportAll: () => void;
+  onExportSession: (id: string) => void;
+  onImportSessions: (sessions: Session[]) => void;
 }
 
 const HistorySidebar: React.FC<HistorySidebarProps> = ({
@@ -28,7 +31,10 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   onRenameSession,
   onAutoRenameSession,
   settings,
-  onUpdateSettings
+  onUpdateSettings,
+  onExportAll,
+  onExportSession,
+  onImportSessions,
 }) => {
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -38,6 +44,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const [autoRenamingId, setAutoRenamingId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -99,7 +106,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
     const button = e.currentTarget as HTMLElement;
     const rect = button.getBoundingClientRect();
-    const menuHeight = 110; // Estimated height of the menu in pixels
+    const menuHeight = 140; // Estimated height of the menu in pixels
 
     // If there isn't enough space below the button for the menu, and there is enough space above
     if (window.innerHeight - rect.bottom < menuHeight && rect.top > menuHeight) {
@@ -108,6 +115,44 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         setMenuPosition('down');
     }
     setMenuId(sessionId);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const result = event.target?.result as string;
+            const parsed = JSON.parse(result);
+            
+            if (typeof parsed !== 'object' || parsed === null || !Array.isArray(parsed.dialogHistory)) {
+                throw new Error("Invalid file format: 'dialogHistory' array not found.");
+            }
+            const sessionsToImport: Session[] = parsed.dialogHistory;
+            
+            const isValid = sessionsToImport.every(s => 
+                s.id && s.title && s.messages && Array.isArray(s.messages) && s.initialSettings && s.createdAt
+            );
+
+            if (isValid) {
+                onImportSessions(sessionsToImport);
+            } else {
+                throw new Error("Invalid session data within the file.");
+            }
+        } catch (err) {
+            console.error("Import failed:", err);
+            alert(t('sidebar.import.error'));
+        } finally {
+            if (e.target) e.target.value = '';
+        }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -172,13 +217,18 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         <MoreHorizontalIcon className="w-4 h-4" />
                       </button>
                       {menuId === session.id && (
-                        <div ref={menuRef} className={`absolute z-10 right-0 w-36 bg-bkg-light dark:bg-bkg-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
+                        <div ref={menuRef} className={`absolute z-10 right-0 w-40 bg-bkg-light dark:bg-bkg-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
                           <button onClick={() => startRename(session)} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">{t('chat.edit_button')}</button>
                           <button onClick={() => handleAutoRename(session.id)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
                             <SparklesIcon className="w-4 h-4"/>
                             {autoRenamingId === session.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}
                           </button>
                           <button onClick={() => { onDeleteSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500">{t('chat.delete_button')}</button>
+                          <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                          <button onClick={() => { onExportSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <DownloadIcon className="w-4 h-4" />
+                            {t('sidebar.export_session')}
+                          </button>
                         </div>
                       )}
                     </div>
@@ -188,6 +238,21 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             </nav>
           </div>
           <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-2">
+            {/* Import/Export buttons */}
+            <div className="px-2 py-1 flex items-center justify-between text-sm gap-2">
+              <button onClick={handleImportClick} className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                <UploadIcon className="w-4 h-4" />
+                {t('sidebar.settings.import')}
+              </button>
+              <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
+              <button onClick={onExportAll} className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                <DownloadIcon className="w-4 h-4" />
+                {t('sidebar.settings.export_all')}
+              </button>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+            
             {/* Language */}
             <div className="px-2 py-1 flex items-center justify-between text-sm">
               <label htmlFor="language-select">{t('sidebar.settings.language')}</label>

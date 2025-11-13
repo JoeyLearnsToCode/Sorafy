@@ -97,6 +97,45 @@ const App: React.FC = () => {
     }
   };
 
+  const handleExport = (sessionsToExport: Session[], filename: string) => {
+    const exportData = {
+      dialogHistory: sessionsToExport
+    };
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+      JSON.stringify(exportData, null, 2)
+    )}`;
+    const link = document.createElement("a");
+    link.href = jsonString;
+    link.download = filename;
+    link.click();
+  };
+
+  const handleExportAll = () => {
+      const date = new Date().toISOString().slice(0, 10);
+      handleExport(sessions, `sorafy_sessions_export_${date}.json`);
+  };
+
+  const handleExportSession = (id: string) => {
+      const session = sessions.find(s => s.id === id);
+      if (session) {
+          const safeTitle = session.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          handleExport([session], `sorafy_session_${safeTitle}.json`);
+      }
+  };
+  
+  const handleImportSessions = (importedSessions: Session[]) => {
+      const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
+      // Generate new IDs and timestamps to avoid conflicts and ensure they appear at the top
+      const newSessions = importedSessions.map((s, index) => ({
+          ...s,
+          id: (Date.now() + index).toString(),
+          createdAt: Date.now() + index,
+      })).sort((a,b) => b.createdAt - a.createdAt);
+
+      setSessions(prev => [...newSessions, ...prev]);
+      alert(t('sidebar.import.success').replace('{count}', newSessions.length.toString()));
+  };
+
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
 
   return (
@@ -113,6 +152,9 @@ const App: React.FC = () => {
         onAutoRenameSession={handleAutoRenameSession}
         settings={settings}
         onUpdateSettings={setSettings}
+        onExportAll={handleExportAll}
+        onExportSession={handleExportSession}
+        onImportSessions={handleImportSessions}
       />
       <main className="flex-1 relative">
         {!isSidebarOpen && (
