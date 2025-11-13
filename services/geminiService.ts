@@ -1,6 +1,6 @@
 import { GoogleGenAI, Chat, Part } from "@google/genai";
 import { SYSTEM_PROMPT } from '../constants';
-import { Message, InitialSettings, ImageFile } from '../types';
+import { Message, InitialSettings, ImageFile, Language } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
@@ -37,9 +37,34 @@ export const analyzeImage = async (image: ImageFile): Promise<string> => {
     return response.text;
 }
 
+export const getNewTitleForSession = async (messages: Message[], language: Language): Promise<string> => {
+    const genAI = getAI();
+    const model = 'gemini-2.5-flash';
+    
+    const titleLanguage = language === 'zh' ? 'Chinese' : 'English';
+    const titleConstraint = language === 'zh' ? '13 Chinese characters' : '6 English words';
+    const systemInstruction = `You are an expert at summarizing conversations into concise titles. Based on the following chat history, generate a short title. The title must be in ${titleLanguage} and no longer than ${titleConstraint}. Respond with ONLY the title text, nothing else.`;
+    
+    const geminiHistory = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }]
+    }));
+
+    geminiHistory.push({ role: 'user', parts: [{ text: 'Please summarize this conversation into a title.' }] });
+      
+    const response = await genAI.models.generateContent({
+        model,
+        contents: geminiHistory,
+        config: { systemInstruction }
+    });
+
+    return response.text.trim().replace(/"/g, '');
+};
+
+
 export const getStreamingResponse = async (
   history: Message[],
-  settings: { debugMode: boolean },
+  settings: { debugMode: boolean, language: Language },
   initialSettings: InitialSettings
 ) => {
   const genAI = getAI();
@@ -67,7 +92,8 @@ export const getStreamingResponse = async (
     }
   } catch (e) {
     // Not a special JSON message, treat as plain text and add context
-    const contextText = `\n\n(System Note: Remember the initial settings: Language for response: ${initialSettings.promptLanguage}, Orientation: ${initialSettings.orientation}, Duration: ${initialSettings.duration} seconds.)`;
+    const uiLanguage = settings.language === 'zh' ? 'Chinese' : 'English';
+    const contextText = `\n\n(System Note: Your conversational response must be in ${uiLanguage}. The sora-2 prompt must always be in English. Remember the video settings: Orientation: ${initialSettings.orientation}, Duration: ${initialSettings.duration} seconds.)`;
     const lastPart = lastMessageParts[0] as Part;
     if (lastPart.text) {
         lastPart.text += contextText;
