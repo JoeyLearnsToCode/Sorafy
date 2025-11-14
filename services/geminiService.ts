@@ -41,8 +41,8 @@ export const getNewTitleForSession = async (messages: Message[], language: Langu
     const genAI = getAI();
     const model = 'gemini-2.5-flash';
     
-    const titleLanguage = language === 'zh' ? 'Chinese' : 'English';
-    const titleConstraint = language === 'zh' ? '13 Chinese characters' : '6 English words';
+    const titleLanguage = language === 'zh' ? '中文' : 'English';
+    const titleConstraint = language === 'zh' ? '13个字' : '6 English words';
     const systemInstruction = `You are an expert at summarizing conversations into concise titles. Based on the following chat history, generate a short title. The title must be in ${titleLanguage} and no longer than ${titleConstraint}. Respond with ONLY the title text, nothing else.`;
     
     const geminiHistory = messages.map(msg => ({

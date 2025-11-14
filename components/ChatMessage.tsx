@@ -15,32 +15,32 @@ interface ChatMessageProps {
   onRegenerate: () => void;
 }
 
-const InitialSettingsDisplay: React.FC<{ settings: any }> = ({ settings }) => (
+const InitialSettingsDisplay: React.FC<{ settings: any; t: (key: keyof typeof translations.en) => string }> = ({ settings, t }) => (
     <div className="mt-2 border rounded-md bg-surface-light dark:bg-surface-dark text-text-light dark:text-text-dark not-prose">
         <div className="p-4">
-            <h4 className="font-semibold text-sm mb-3">Initial Prompt Settings</h4>
+            <h4 className="font-semibold text-sm mb-3">{t('chat.initial_settings_title')}</h4>
             <div className="space-y-3">
                 <div>
-                    <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">Idea</strong>
+                    <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">{t('chat.settings.idea')}</strong>
                     <p className="text-sm mt-1 whitespace-pre-wrap">{settings.idea}</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                     <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">Language</strong>
+                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">{t('chat.settings.language')}</strong>
                         <p className="mt-1">{settings.promptLanguage}</p>
                     </div>
                     <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">Orientation</strong>
+                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">{t('chat.settings.orientation')}</strong>
                         <p className="mt-1">{settings.orientation}</p>
                     </div>
                     <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">Duration</strong>
+                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">{t('chat.settings.duration')}</strong>
                         <p className="mt-1">{settings.duration}s</p>
                     </div>
                 </div>
                 {settings.images && settings.images.length > 0 && (
                     <div className="mt-2">
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">Reference Images</strong>
+                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase">{t('chat.settings.images')}</strong>
                         <div className="flex flex-wrap gap-2 mt-1">
                             {settings.images.map((img: { dataUrl: string }, i: number) => 
                                 <img key={i} src={img.dataUrl} className="w-20 h-20 object-cover rounded-md border" alt={`Reference ${i+1}`} />
@@ -154,7 +154,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
                     )}
                 </>
             ) : initialSettingsData ? (
-                <InitialSettingsDisplay settings={initialSettingsData} />
+                <InitialSettingsDisplay settings={initialSettingsData} t={t} />
             ) : (
                 <p className="whitespace-pre-wrap">{message.content}</p>
             )}

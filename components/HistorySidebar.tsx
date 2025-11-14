@@ -94,8 +94,13 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const handleAutoRename = async (sessionId: string) => {
       setMenuId(null);
       setAutoRenamingId(sessionId);
-      await onAutoRenameSession(sessionId);
-      setAutoRenamingId(null);
+      try {
+        await onAutoRenameSession(sessionId);
+      } catch (error) {
+        console.error("Auto rename failed in sidebar", error);
+      } finally {
+        setAutoRenamingId(null);
+      }
   }
 
   const handleMenuToggle = (e: React.MouseEvent, sessionId: string) => {
@@ -213,12 +218,12 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                   </button>
                   {renamingId !== session.id && (
                     <div className="relative">
-                      <button onClick={(e) => handleMenuToggle(e, session.id)} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 mr-1" disabled={!!autoRenamingId}>
+                      <button onClick={(e) => handleMenuToggle(e, session.id)} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 mr-1" disabled={autoRenamingId === session.id}>
                         <MoreHorizontalIcon className="w-4 h-4" />
                       </button>
                       {menuId === session.id && (
                         <div ref={menuRef} className={`absolute z-10 right-0 w-40 bg-bkg-light dark:bg-bkg-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-                          <button onClick={() => startRename(session)} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">{t('chat.edit_button')}</button>
+                          <button onClick={() => startRename(session)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">{t('chat.edit_button')}</button>
                           <button onClick={() => handleAutoRename(session.id)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
                             <SparklesIcon className="w-4 h-4"/>
                             {autoRenamingId === session.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}

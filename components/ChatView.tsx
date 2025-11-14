@@ -14,6 +14,7 @@ interface ChatViewProps {
 const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings }) => {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [dotCount, setDotCount] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sessionRef = useRef(session);
@@ -24,6 +25,18 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
 
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
   
+  useEffect(() => {
+    let interval: number | undefined;
+    if (isStreaming) {
+        interval = window.setInterval(() => {
+            setDotCount(prev => (prev % 3) + 1);
+        }, 500);
+    }
+    return () => {
+        if (interval) clearInterval(interval);
+    };
+  }, [isStreaming]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -203,7 +216,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
               disabled={!canSendMessage}
               className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary-light dark:bg-primary-dark text-white rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isStreaming ? '...' : 'Send'}
+              {isStreaming ? '.'.repeat(dotCount) : t('chat.send_button')}
             </button>
           </div>
         </div>
