@@ -36,8 +36,10 @@ export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
 
-export const SparklesIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3L9.5 5.5L7 3L9.5 0.5L12 3Z" /><path d="M12 21L9.5 18.5L7 21L9.5 23.5L12 21Z" /><path d="M3 12L0.5 9.5L3 7L5.5 9.5L3 12Z" /><path d="M21 12L23.5 9.5L21 7L18.5 9.5L21 12Z" /><path d="M12 12L12 12" /><path d="M12 3L9.5 5.5" /><path d="M7 3L9.5 0.5" /><path d="M12 21L9.5 18.5" /><path d="M7 21L9.5 23.5" /><path d="M3 12L0.5 9.5" /><path d="M3 7L5.5 9.5" /><path d="M21 12L23.5 9.5" /><path d="M21 7L18.5 9.5" /></svg>
+export const GeminiIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M12 0.44L14.08 8.13L21.77 10.21L14.08 12.29L12 19.98L9.92 12.29L2.23 10.21L9.92 8.13L12 0.44Z M18.91 15.18L19.5 17.26L20.09 15.18L22.17 14.59L20.09 14L19.5 11.92L18.91 14L16.83 14.59L18.91 15.18Z"/>
+    </svg>
 );
 
 export const RefreshCwIcon: React.FC<{ className?: string }> = ({ className }) => (

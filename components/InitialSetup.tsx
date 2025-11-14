@@ -13,7 +13,7 @@ interface InitialSetupProps {
 
 const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => {
   const [promptLanguage, setPromptLanguage] = useState('English');
-  const [orientation, setOrientation] = useState<Orientation>('landscape');
+  const [orientation, setOrientation] = useState<Orientation>('portrait');
   const [duration, setDuration] = useState(10);
   const [referenceImages, setReferenceImages] = useState<ImageFile[]>([]);
   const [idea, setIdea] = useState('');
@@ -112,7 +112,8 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
           <div>
             <label htmlFor="orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.orientation.label')}</label>
             <select id="orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm">
-              <option value="landscape">{t('initial.orientation.landscape')}</option><option value="portrait">{t('initial.orientation.portrait')}</option>
+              <option value="portrait">{t('initial.orientation.portrait')}</option>
+              <option value="landscape">{t('initial.orientation.landscape')}</option>
             </select>
           </div>
           {/* Duration */}

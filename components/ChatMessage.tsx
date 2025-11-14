@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message, Language } from '../types';
 import { translations } from '../constants';
-import { UserIcon, SparklesIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon } from './icons';
+import { UserIcon, GeminiIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon } from './icons';
 
 interface ChatMessageProps {
   message: Message;
@@ -53,7 +53,7 @@ const InitialSettingsDetails: React.FC<{ data: any; t: (key: keyof typeof transl
           <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.language')}:</div>
           <div>{data.promptLanguage}</div>
           <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.orientation')}:</div>
-          <div>{data.orientation}</div>
+          <div>{t(`initial.orientation.${data.orientation}` as keyof typeof translations.en)}</div>
           <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.duration')}:</div>
           <div>{data.duration}s</div>
         </div>
@@ -132,7 +132,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
         <div className={`py-6 flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
             {/* Avatar */}
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user' ? 'bg-blue-100 dark:bg-blue-900' : 'bg-slate-100 dark:bg-slate-800'}`}>
-                {message.role === 'user' ? <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300"/> : <SparklesIcon className="w-5 h-5 text-slate-600 dark:text-slate-300"/>}
+                {message.role === 'user' ? <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300"/> : <GeminiIcon className="w-5 h-5 text-slate-600 dark:text-slate-300"/>}
             </div>
 
             {/* Message and Actions */}
@@ -157,27 +157,27 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
                         </div>
                     )}
 
-                    {/* AI Bubbles */}
+                    {/* AI Bubble */}
                     {message.role === 'model' && (
-                        <>
-                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none p-4 shadow-soft">
-                                <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left">
+                        <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none shadow-soft overflow-hidden">
+                            {otherText && (
+                                <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{otherText}</ReactMarkdown>
                                 </div>
-                            </div>
+                            )}
                             {promptText && (
-                                <div className="mt-2 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark shadow-soft w-full">
-                                    <div className="flex justify-between items-center px-4 py-2 bg-surface-secondary-light dark:bg-surface-secondary-dark rounded-t-lg border-b border-border-light dark:border-border-dark">
+                                <div className={`${otherText ? 'border-t border-border-light dark:border-border-dark' : ''}`}>
+                                    <div className="flex justify-between items-center px-4 py-2 bg-surface-light dark:bg-surface-dark">
                                         <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
                                         <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary-dark hover:opacity-80">
                                             {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
                                             {copied ? t('chat.copied_message') : t('chat.copy_button')}
                                         </button>
                                     </div>
-                                    <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left"><code>{promptText}</code></pre>
+                                    <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left bg-surface-secondary-light dark:bg-surface-secondary-dark"><code>{promptText}</code></pre>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
 

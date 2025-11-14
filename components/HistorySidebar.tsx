@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Session, AppSettings, Language, Theme } from '../types';
-import { PlusIcon, MessageSquareIcon, SunIcon, MoonIcon, MoreHorizontalIcon, SparklesIcon, ChevronLeftIcon, UploadIcon, DownloadIcon } from './icons';
+import { PlusIcon, MessageSquareIcon, SunIcon, MoonIcon, MoreHorizontalIcon, GeminiIcon, ChevronLeftIcon, UploadIcon, DownloadIcon } from './icons';
 import { translations } from '../constants';
 
 interface HistorySidebarProps {
@@ -40,7 +40,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [menuId, setMenuId] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<'up' | 'down'>('down');
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const [autoRenamingId, setAutoRenamingId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -111,13 +111,24 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
     const button = e.currentTarget as HTMLElement;
     const rect = button.getBoundingClientRect();
-    const menuHeight = 140; // Estimated height of the menu in pixels
+    const menuHeight = 160; // Estimated height of the menu in pixels
+    const menuWidth = 192; // w-48 from tailwind config (12rem = 192px)
 
+    const style: React.CSSProperties = { zIndex: 50 };
+
+    // Position horizontally: right-aligned with the button.
+    style.left = `${rect.right - menuWidth}px`;
+
+    // Position vertically: below or above the button.
     if (window.innerHeight - rect.bottom < menuHeight && rect.top > menuHeight) {
-        setMenuPosition('up');
+        // Not enough space below, show above
+        style.top = `${rect.top - menuHeight}px`;
     } else {
-        setMenuPosition('down');
+        // Show below
+        style.top = `${rect.bottom}px`;
     }
+
+    setMenuStyle(style);
     setMenuId(sessionId);
   };
 
@@ -158,6 +169,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     };
     reader.readAsText(file);
   };
+  
+  const menuSession = menuId ? sessions.find(s => s.id === menuId) : null;
 
   return (
     <>
@@ -171,7 +184,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         text-text-primary-light dark:text-text-primary-dark
         transition-transform duration-300 ease-in-out border-r border-border-light/80 dark:border-border-dark/80
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:relative md:translate-x-0 md:transition-all overflow-hidden
+        md:relative md:translate-x-0 md:transition-all
         ${isOpen ? 'md:w-72' : 'md:w-0'}
       `}>
         <div className={`w-72 h-full flex flex-col p-3 overflow-hidden`}>
@@ -220,21 +233,6 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                           <button onClick={(e) => handleMenuToggle(e, session.id)} className="p-2 rounded-md hover:bg-surface-light dark:hover:bg-surface-dark mr-1 opacity-0 group-hover:opacity-100 transition-opacity" disabled={autoRenamingId === session.id}>
                               <MoreHorizontalIcon className="w-4 h-4" />
                           </button>
-                          {menuId === session.id && (
-                              <div ref={menuRef} className={`absolute z-10 right-0 w-48 bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-                              <button onClick={() => startRename(session)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-50">{t('chat.edit_button')}</button>
-                              <button onClick={() => handleAutoRename(session.id)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-50">
-                                  <SparklesIcon className="w-4 h-4"/>
-                                  {autoRenamingId === session.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}
-                              </button>
-                              <button onClick={() => { onDeleteSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark text-red-500">{t('chat.delete_button')}</button>
-                              <div className="border-t border-border-light dark:border-border-dark my-1"></div>
-                              <button onClick={() => { onExportSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark">
-                                  <DownloadIcon className="w-4 h-4" />
-                                  {t('sidebar.export_session')}
-                              </button>
-                              </div>
-                          )}
                           </div>
                       )}
                     </div>
@@ -277,6 +275,21 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             </div>
         </div>
       </div>
+      {menuId && menuSession && (
+        <div ref={menuRef} style={menuStyle} className="fixed w-48 bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg shadow-lifted text-sm py-1">
+            <button onClick={() => startRename(menuSession)} disabled={autoRenamingId === menuSession.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-50">{t('chat.edit_button')}</button>
+            <button onClick={() => handleAutoRename(menuSession.id)} disabled={autoRenamingId === menuSession.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-50">
+                <GeminiIcon className="w-4 h-4"/>
+                {autoRenamingId === menuSession.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}
+            </button>
+            <button onClick={() => { onDeleteSession(menuSession.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark text-red-500">{t('chat.delete_button')}</button>
+            <div className="border-t border-border-light dark:border-border-dark my-1"></div>
+            <button onClick={() => { onExportSession(menuSession.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-border-light dark:hover:bg-border-dark">
+                <DownloadIcon className="w-4 h-4" />
+                {t('sidebar.export_session')}
+            </button>
+        </div>
+      )}
     </>
   );
 };

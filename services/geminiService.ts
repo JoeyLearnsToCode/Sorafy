@@ -39,7 +39,7 @@ export const analyzeImage = async (image: ImageFile): Promise<string> => {
 
 export const getNewTitleForSession = async (messages: Message[], language: Language): Promise<string> => {
     const genAI = getAI();
-    const model = 'gemini-2.5-flash';
+    const model = 'gemini-2.5-flash-lite';
     
     const titleLanguage = language === 'zh' ? '中文' : 'English';
     const titleConstraint = language === 'zh' ? '13个字' : '6 English words';
