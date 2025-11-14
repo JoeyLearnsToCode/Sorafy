@@ -155,6 +155,16 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     }
   };
 
+  const handleRegenerate = async () => {
+    if (isStreaming) return;
+    const lastMessage = session.messages[session.messages.length - 1];
+    if (lastMessage?.role === 'model') {
+      const historyToResend = session.messages.slice(0, -1);
+      onUpdateSession({ ...session, messages: historyToResend });
+      await generateResponse(historyToResend);
+    }
+  };
+
   const lastMessageIsUser = session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'user';
   const canSendMessage = !isStreaming && (!!input.trim() || lastMessageIsUser);
 
@@ -162,7 +172,17 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     <div className="flex flex-col h-screen bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
       <div className="flex-1 overflow-y-auto">
         {session.messages.map((msg, index) => (
-          <ChatMessage key={msg.id} message={msg} index={index} language={settings.language} onDelete={handleDeleteMessage} onEdit={handleEditMessage}/>
+          <ChatMessage 
+            key={msg.id} 
+            message={msg} 
+            index={index} 
+            language={settings.language} 
+            isLastMessage={index === session.messages.length - 1}
+            isStreaming={isStreaming}
+            onDelete={handleDeleteMessage} 
+            onEdit={handleEditMessage}
+            onRegenerate={handleRegenerate}
+            />
         ))}
         <div ref={messagesEndRef} />
       </div>

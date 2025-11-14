@@ -2,14 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 // FIX: The 'translations' object is exported from 'constants.ts', not 'types.ts'.
 import { Message, Language } from '../types';
 import { translations } from '../constants';
-import { UserIcon, SparklesIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon } from './icons';
+import { UserIcon, SparklesIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon } from './icons';
 
 interface ChatMessageProps {
   message: Message;
   index: number;
   language: Language;
+  isLastMessage: boolean;
+  isStreaming: boolean;
   onDelete: (messageId: string) => void;
   onEdit: (messageId:string, newContent: string) => void;
+  onRegenerate: () => void;
 }
 
 const InitialSettingsDisplay: React.FC<{ settings: any }> = ({ settings }) => (
@@ -51,7 +54,7 @@ const InitialSettingsDisplay: React.FC<{ settings: any }> = ({ settings }) => (
 );
 
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, onDelete, onEdit }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isLastMessage, isStreaming, onDelete, onEdit, onRegenerate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
   const [copied, setCopied] = useState(false);
@@ -109,6 +112,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, onD
     : <SparklesIcon className="w-6 h-6 text-primary-light dark:text-primary-dark" />;
 
   const bgColor = message.role === 'user' ? 'bg-surface-light dark:bg-surface-dark' : 'bg-bkg-light dark:bg-bkg-dark';
+  const canRegenerate = message.role === 'model' && isLastMessage && !isStreaming;
   
   return (
     <div className={`p-4 ${bgColor} flex gap-4 group`}>
@@ -159,6 +163,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, onD
       </div>
        {!isEditing && (
             <div className="flex items-start gap-1 transition-opacity">
+                {canRegenerate && (
+                    <button onClick={onRegenerate} className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-text-secondary-light dark:text-text-secondary-dark" title={t('chat.regenerate_button')}>
+                        <RefreshCwIcon className="w-4 h-4" />
+                    </button>
+                )}
                 <button onClick={() => setIsEditing(true)} className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-text-secondary-light dark:text-text-secondary-dark"><Edit2Icon className="w-4 h-4" /></button>
                 <button onClick={() => onDelete(message.id)} className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-text-secondary-light dark:text-text-secondary-dark"><Trash2Icon className="w-4 h-4" /></button>
             </div>

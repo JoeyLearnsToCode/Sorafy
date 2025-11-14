@@ -75,29 +75,34 @@ export const getStreamingResponse = async (
   }));
 
   const lastMessage = history[history.length - 1];
-  
   const lastMessageParts: (string | Part)[] = [{ text: lastMessage.content }];
-
-  try {
-    const parsedContent = JSON.parse(lastMessage.content);
-    if (parsedContent.idea && parsedContent.images) {
-        let textContent = `Generate a sora-2 prompt based on the following requirements:\nIdea: ${parsedContent.idea}\nLanguage for response: ${parsedContent.promptLanguage}\nOrientation: ${parsedContent.orientation}\nDuration: ${parsedContent.duration} seconds.`;
+  let isFirstMessageProcessed = false;
+  
+  // Only try to parse JSON if this is the first message
+  if (history.length === 1) {
+    try {
+      const parsedContent = JSON.parse(lastMessage.content);
+      if (parsedContent.idea && parsedContent.images) {
+        const uiLanguage = settings.language === 'zh' ? '中文' : 'English';
+        let textContent = `Generate a sora-2 prompt based on user provided idea: ${parsedContent.idea}\n\n(System Note: Language for prompt: ${parsedContent.promptLanguage}\nOrientation: ${parsedContent.orientation}\nDuration: ${parsedContent.duration} seconds.\nLanguage for conversational response: ${uiLanguage}. Don't describe them in prompt directly, just use them as context.)`;
         if (parsedContent.images.length > 0) {
-            textContent += `\nI have also provided ${parsedContent.images.length} reference image(s).`;
+            textContent += `\n\nI have also provided ${parsedContent.images.length} reference image${parsedContent.images.length > 1 ? 's' : ''}.`;
         }
         const textPart = { text: textContent };
         const imageParts = parsedContent.images.map((img: {dataUrl: string, type: string}) => fileToGenerativePart(img.dataUrl, img.type));
-        
         lastMessageParts.splice(0, 1, textPart, ...imageParts);
+        isFirstMessageProcessed = true;
+      }
+    } catch (e) {
+      // JSON parse failed, will be handled below
     }
-  } catch (e) {
-    // Not a special JSON message, treat as plain text and add context
-    const uiLanguage = settings.language === 'zh' ? 'Chinese' : 'English';
-    const contextText = `\n\n(System Note: Your conversational response must be in ${uiLanguage}. The sora-2 prompt must always be in English. Remember the video settings: Orientation: ${initialSettings.orientation}, Duration: ${initialSettings.duration} seconds.)`;
-    const lastPart = lastMessageParts[0] as Part;
-    if (lastPart.text) {
-        lastPart.text += contextText;
-    }
+  }
+  
+  // If not first message or first message processing failed, add context
+  if (!isFirstMessageProcessed) {
+    const uiLanguage = settings.language === 'zh' ? '中文' : 'English';
+    const contextText = `(System Note: Language for prompt: ${initialSettings.promptLanguage}\nOrientation: ${initialSettings.orientation}\nDuration: ${initialSettings.duration} seconds.\nLanguage for conversational response: ${uiLanguage}. Don't describe them in prompt directly, just use them as context.)`;
+    lastMessageParts.push({ text: contextText });
   }
 
   // FIX: The `systemInstruction` must be a string and placed inside the `config` object.
