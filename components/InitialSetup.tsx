@@ -66,7 +66,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
     setIsAnalyzing(true);
     setError('');
     try {
-        const analysis = await analyzeImage(referenceImages[0]); // Analyze the first image
+        const analysis = await analyzeImage(referenceImages[0], promptLanguage); // Analyze the first image
         setIdea(prev => prev ? `${prev}\n\n${analysis}`.trim() : analysis);
     } catch (e) {
         console.error("Error analyzing image:", e);

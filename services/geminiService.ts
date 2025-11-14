@@ -23,10 +23,10 @@ function fileToGenerativePart(dataUrl: string, mimeType: string): Part {
   };
 }
 
-export const analyzeImage = async (image: ImageFile): Promise<string> => {
+export const analyzeImage = async (image: ImageFile, language: string): Promise<string> => {
     const genAI = getAI();
     const model = 'gemini-2.5-pro';
-    const prompt = 'Analyze this image and describe its style, scene, cinematography details, and potential actions in a concise paragraph. This will be used as an idea for generating a video prompt.';
+    const prompt = `Analyze this image and describe its style, scene, cinematography details, and potential actions in a concise paragraph. This will be used as an idea for generating a video prompt. Please respond in ${language}.`;
     const imagePart = fileToGenerativePart(image.dataUrl, image.type);
 
     const response = await genAI.models.generateContent({
