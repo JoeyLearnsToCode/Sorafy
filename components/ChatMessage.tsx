@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 // FIX: The 'translations' object is exported from 'constants.ts', not 'types.ts'.
 import { Message, Language } from '../types';
 import { translations } from '../constants';
@@ -139,7 +141,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
           <div className="prose prose-sm dark:prose-invert max-w-none mt-1 text-text-light dark:text-text-dark break-words">
             {message.role === 'model' ? (
                 <>
-                    <p className="whitespace-pre-wrap">{otherText}</p>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{otherText}</ReactMarkdown>
                     {promptText && (
                         <div className="mt-4 bg-surface-light dark:bg-surface-dark rounded-md">
                             <div className="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-t-md">
@@ -156,7 +158,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
             ) : initialSettingsData ? (
                 <InitialSettingsDisplay settings={initialSettingsData} t={t} />
             ) : (
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
             )}
           </div>
         )}
