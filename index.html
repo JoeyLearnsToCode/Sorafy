@@ -18,18 +18,28 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              'bkg-light': '#FDFDFD',
-              'bkg-dark': '#141414',
-              'surface-light': '#F5F5F5',
-              'surface-dark': '#242424',
-              'primary-light': '#0F6CBD',
-              'primary-dark': '#2899F5',
-              'text-light': '#1A1A1A',
-              'text-dark': '#F5F5F5',
-              'text-secondary-light': '#605E5C',
-              'text-secondary-dark': '#A19F9D',
-              'border-light': '#E1DFDD',
-              'border-dark': '#424242'
+              'bkg-light': '#F0F1F3',
+              'bkg-dark': '#0D0D0F',
+              'surface-light': '#FFFFFF',
+              'surface-dark': '#1A1A1C',
+              'surface-secondary-light': '#F7F8FA',
+              'surface-secondary-dark': '#2C2C2F',
+              'primary': '#2563EB',
+              'primary-dark': '#3B82F6',
+              'text-primary-light': '#18181B',
+              'text-primary-dark': '#E4E4E7',
+              'text-secondary-light': '#6B7280',
+              'text-secondary-dark': '#A1A1AA',
+              'border-light': '#E4E4E7',
+              'border-dark': '#3F3F46'
+            },
+            boxShadow: {
+              'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+              'lifted': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
             }
           }
         }
@@ -46,16 +56,16 @@
         width: 36px;
         height: 20px;
         border-radius: 10px;
-        background-color: #797775; /* Off state */
+        background-color: #A1A1AA; /* Off state */
         position: relative;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out;
       }
       .toggle-checkbox:checked {
-        background-color: #0F6CBD; /* On state */
+        background-color: #2563EB; /* On state */
       }
       .dark .toggle-checkbox:checked {
-        background-color: #2899F5;
+        background-color: #3B82F6;
       }
       .toggle-checkbox::before {
         content: '';

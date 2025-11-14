@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-// FIX: The 'translations' object is exported from 'constants.ts', not 'types.ts'.
 import { Message, Language } from '../types';
 import { translations } from '../constants';
 import { UserIcon, SparklesIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon } from './icons';
@@ -17,44 +16,50 @@ interface ChatMessageProps {
   onRegenerate: () => void;
 }
 
-const InitialSettingsDisplay: React.FC<{ settings: any; t: (key: keyof typeof translations.en) => string }> = ({ settings, t }) => (
-    <div className="mt-2 border border-border-light dark:border-border-dark rounded-lg bg-surface-light dark:bg-surface-dark text-text-light dark:text-text-dark not-prose">
-        <div className="p-4">
-            <h4 className="font-semibold text-base mb-3">{t('chat.initial_settings_title')}</h4>
-            <div className="space-y-4">
-                <div>
-                    <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">{t('chat.settings.idea')}</strong>
-                    <p className="text-sm mt-1 whitespace-pre-wrap">{settings.idea}</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">{t('chat.settings.language')}</strong>
-                        <p className="mt-1">{settings.promptLanguage}</p>
-                    </div>
-                    <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">{t('chat.settings.orientation')}</strong>
-                        <p className="mt-1 capitalize">{settings.orientation}</p>
-                    </div>
-                    <div>
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">{t('chat.settings.duration')}</strong>
-                        <p className="mt-1">{settings.duration}s</p>
-                    </div>
-                </div>
-                {settings.images && settings.images.length > 0 && (
-                    <div className="mt-2">
-                        <strong className="text-xs text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">{t('chat.settings.images')}</strong>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {settings.images.map((img: { dataUrl: string }, i: number) => 
-                                <img key={i} src={img.dataUrl} className="w-24 h-24 object-cover rounded-md border border-border-light dark:border-border-dark" alt={`Reference ${i+1}`} />
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    </div>
-);
+const ImageStack: React.FC<{ images: { dataUrl: string }[] }> = ({ images }) => {
+    if (!images || images.length === 0) return null;
 
+    if (images.length === 1) {
+        return (
+            <div className="mt-4 flex justify-center">
+                <img src={images[0].dataUrl} alt="Reference" className="max-w-sm w-full rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50" />
+            </div>
+        );
+    }
+
+    if (images.length === 2) {
+        return (
+            <div className="relative mt-6 h-56 flex justify-center items-center">
+                <img src={images[0].dataUrl} alt="Reference 1" className="absolute w-2/3 max-w-xs h-auto object-cover rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50 transform -rotate-6" />
+                <img src={images[1].dataUrl} alt="Reference 2" className="absolute w-2/3 max-w-xs h-auto object-cover rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50 transform rotate-6" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative mt-8 h-64 flex justify-center items-center" style={{ perspective: '1000px' }}>
+            <img src={images[0].dataUrl} alt="Reference 1" className="absolute w-2/3 max-w-xs h-auto object-cover rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50 transform -translate-x-16 -rotate-y-20" style={{ transform: 'translateX(-4rem) rotateY(-20deg)' }} />
+            <img src={images[1].dataUrl} alt="Reference 2" className="absolute w-2/3 max-w-xs h-auto object-cover rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50 z-10" />
+            <img src={images[2].dataUrl} alt="Reference 3" className="absolute w-2/3 max-w-xs h-auto object-cover rounded-xl shadow-lifted border border-border-light/50 dark:border-border-dark/50 transform translate-x-16 rotate-y-20" style={{ transform: 'translateX(4rem) rotateY(20deg)' }} />
+        </div>
+    );
+};
+
+const InitialSettingsDetails: React.FC<{ data: any; t: (key: keyof typeof translations.en) => string; }> = ({ data, t }) => {
+    return (
+      <div className="mb-3 p-3 bg-black/5 dark:bg-white/5 rounded-lg border border-black/10 dark:border-white/10 text-text-primary-light dark:text-text-primary-dark">
+        <h3 className="font-semibold text-sm mb-2">{t('chat.initial_settings_title')}</h3>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.language')}:</div>
+          <div>{data.promptLanguage}</div>
+          <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.orientation')}:</div>
+          <div>{data.orientation}</div>
+          <div className="font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('chat.settings.duration')}:</div>
+          <div>{data.duration}s</div>
+        </div>
+      </div>
+    );
+};
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isLastMessage, isStreaming, onDelete, onEdit, onRegenerate }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -69,19 +74,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
   const otherText = promptText ? message.content.replace(promptRegex, '').trim() : message.content;
 
   let initialSettingsData: any = null;
-  // Only parse the very first message from the user as the initial settings.
   if (message.role === 'user' && index === 0) {
       try {
         const parsed = JSON.parse(message.content);
-        // A simple check to see if it's likely our settings object
         if (parsed.idea && parsed.orientation && parsed.promptLanguage) {
           initialSettingsData = parsed;
         }
       } catch (e) { 
-        // Not a JSON message or malformed, will fall back to showing raw content.
+        // Not a JSON message, will show raw content.
       }
   }
-
 
   const handleCopy = () => {
     if (promptText) {
@@ -108,71 +110,92 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
         textareaRef.current.focus();
     }
   }, [isEditing, editedContent]);
-
-  const Avatar = message.role === 'user'
-    ? <UserIcon className="w-6 h-6 text-text-secondary-light dark:text-text-secondary-dark" />
-    : <SparklesIcon className="w-6 h-6 text-primary-light dark:text-primary-dark" />;
-
+  
   const canRegenerate = message.role === 'model' && isLastMessage && !isStreaming;
   
   return (
-    <div className={`py-6 px-4 flex gap-4 group border-b border-border-light dark:border-border-dark`}>
-      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-light dark:bg-surface-dark flex-shrink-0 mt-1">
-        {Avatar}
-      </div>
-      <div className="flex-1 overflow-hidden">
-        <div className="font-bold capitalize text-text-light dark:text-text-dark">{message.role}</div>
-        
-        {isEditing ? (
-            <div className='mt-2'>
-                <textarea
-                    ref={textareaRef}
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm p-2 focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark sm:text-sm resize-none"
-                />
-                <div className="flex gap-2 mt-2">
-                    <button onClick={handleSaveEdit} className="px-3 py-1 text-xs bg-primary-light dark:bg-primary-dark text-white rounded-md">{t('chat.save_button')}</button>
-                    <button onClick={handleCancelEdit} className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded-md">{t('chat.cancel_button')}</button>
-                </div>
+    <div className="px-4 group">
+      {isEditing ? (
+          <div className='py-6'>
+              <textarea
+                  ref={textareaRef}
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm p-2 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark sm:text-sm resize-none"
+              />
+              <div className="flex gap-2 mt-2">
+                  <button onClick={handleSaveEdit} className="px-3 py-1 text-xs bg-primary dark:bg-primary-dark text-white rounded-md">{t('chat.save_button')}</button>
+                  <button onClick={handleCancelEdit} className="px-3 py-1 text-xs bg-border-light dark:bg-border-dark rounded-md">{t('chat.cancel_button')}</button>
+              </div>
+          </div>
+      ) : (
+        <div className={`py-6 flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            {/* Avatar */}
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user' ? 'bg-blue-100 dark:bg-blue-900' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                {message.role === 'user' ? <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-300"/> : <SparklesIcon className="w-5 h-5 text-slate-600 dark:text-slate-300"/>}
             </div>
-        ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none mt-1 text-text-light dark:text-text-dark break-words">
-            {message.role === 'model' ? (
-                <>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{otherText}</ReactMarkdown>
-                    {promptText && (
-                        <div className="mt-4 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark">
-                            <div className="flex justify-between items-center px-4 py-2 bg-bkg-light dark:bg-gray-800/20 rounded-t-lg border-b border-border-light dark:border-border-dark">
-                                <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
-                                <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary-light dark:text-primary-dark hover:opacity-80">
-                                    {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
-                                    {copied ? t('chat.copied_message') : t('chat.copy_button')}
-                                </button>
+
+            {/* Message and Actions */}
+            <div className="flex flex-col gap-1 w-full max-w-[85%]">
+                <div className={`flex flex-col gap-2 ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    {/* User Bubble */}
+                    {message.role === 'user' && (
+                        <div className="bg-blue-100/70 dark:bg-sky-900/40 border border-blue-200/80 dark:border-sky-800/60 rounded-2xl rounded-tr-none p-4 shadow-soft">
+                             <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words">
+                                {initialSettingsData ? (
+                                    <>
+                                        <InitialSettingsDetails data={initialSettingsData} t={t} />
+                                        <p>{initialSettingsData.idea}</p>
+                                        {initialSettingsData.images && initialSettingsData.images.length > 0 && 
+                                          <div className="not-prose my-4 -mx-4"><ImageStack images={initialSettingsData.images} /></div>
+                                        }
+                                    </>
+                                ) : (
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                                )}
                             </div>
-                            <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono"><code>{promptText}</code></pre>
                         </div>
                     )}
-                </>
-            ) : initialSettingsData ? (
-                <InitialSettingsDisplay settings={initialSettingsData} t={t} />
-            ) : (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
-            )}
-          </div>
-        )}
-      </div>
-       {!isEditing && (
-            <div className="flex items-start gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {canRegenerate && (
-                    <button onClick={onRegenerate} className="p-2 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark text-text-secondary-light dark:text-text-secondary-dark" title={t('chat.regenerate_button')}>
-                        <RefreshCwIcon className="w-4 h-4" />
-                    </button>
-                )}
-                <button onClick={() => setIsEditing(true)} className="p-2 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark text-text-secondary-light dark:text-text-secondary-dark"><Edit2Icon className="w-4 h-4" /></button>
-                <button onClick={() => onDelete(message.id)} className="p-2 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark text-text-secondary-light dark:text-text-secondary-dark"><Trash2Icon className="w-4 h-4" /></button>
+
+                    {/* AI Bubbles */}
+                    {message.role === 'model' && (
+                        <>
+                            <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none p-4 shadow-soft">
+                                <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{otherText}</ReactMarkdown>
+                                </div>
+                            </div>
+                            {promptText && (
+                                <div className="mt-2 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark shadow-soft w-full">
+                                    <div className="flex justify-between items-center px-4 py-2 bg-surface-secondary-light dark:bg-surface-secondary-dark rounded-t-lg border-b border-border-light dark:border-border-dark">
+                                        <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
+                                        <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary-dark hover:opacity-80">
+                                            {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
+                                            {copied ? t('chat.copied_message') : t('chat.copy_button')}
+                                        </button>
+                                    </div>
+                                    <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left"><code>{promptText}</code></pre>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Action buttons */}
+                <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${message.role === 'user' ? 'justify-end' : ''}`}>
+                    <div className="flex items-center bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full shadow-soft">
+                        {canRegenerate && (
+                            <button onClick={onRegenerate} className="p-2 rounded-full hover:bg-surface-secondary-light dark:hover:bg-surface-secondary-dark text-text-secondary-light dark:text-text-secondary-dark" title={t('chat.regenerate_button')}>
+                                <RefreshCwIcon className="w-4 h-4" />
+                            </button>
+                        )}
+                        <button onClick={() => setIsEditing(true)} className="p-2 rounded-full hover:bg-surface-secondary-light dark:hover:bg-surface-secondary-dark text-text-secondary-light dark:text-text-secondary-dark" title={t('chat.edit_button')}><Edit2Icon className="w-4 h-4" /></button>
+                        <button onClick={() => onDelete(message.id)} className="p-2 rounded-full hover:bg-surface-secondary-light dark:hover:bg-surface-secondary-dark text-text-secondary-light dark:text-text-secondary-dark" title={t('chat.delete_button')}><Trash2Icon className="w-4 h-4" /></button>
+                    </div>
+                </div>
             </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

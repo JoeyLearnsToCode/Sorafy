@@ -18,8 +18,6 @@ const App: React.FC = () => {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // FIX: Define the translation helper function once at the component level and correct its implementation.
-  // This avoids a faulty recursive definition and makes it available to all component functions and the render method.
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
 
   const currentSession = sessions.find(s => s.id === currentSessionId) || null;
@@ -40,7 +38,7 @@ const App: React.FC = () => {
   const createNewSession = (initialSettings: InitialSettings) => {
     const firstUserMessageContent = JSON.stringify({
         ...initialSettings,
-        images: initialSettings.referenceImages.map(img => ({ type: img.type, dataUrl: img.dataUrl })) // only send necessary data
+        images: initialSettings.referenceImages.map(img => ({ type: img.type, dataUrl: img.dataUrl }))
     });
 
     const newSession: Session = {
@@ -128,7 +126,6 @@ const App: React.FC = () => {
   };
   
   const handleImportSessions = (importedSessions: Session[]) => {
-      // Generate new IDs and timestamps to avoid conflicts and ensure they appear at the top
       const newSessions = importedSessions.map((s, index) => ({
           ...s,
           id: (Date.now() + index).toString(),
@@ -140,44 +137,46 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <HistorySidebar
-        sessions={sessions}
-        currentSessionId={currentSessionId}
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        onSelectSession={handleSelectSession}
-        onNewSession={handleNewSession}
-        onDeleteSession={handleDeleteSession}
-        onRenameSession={handleRenameSession}
-        onAutoRenameSession={handleAutoRenameSession}
-        settings={settings}
-        onUpdateSettings={setSettings}
-        onExportAll={handleExportAll}
-        onExportSession={handleExportSession}
-        onImportSessions={handleImportSessions}
-      />
-      <main className="flex-1 relative">
-        {!isSidebarOpen && (
-            <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-2 m-4 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark absolute top-0 left-0 z-10"
-                aria-label={t('app.open_menu')}
-                title={t('app.open_menu')}
-            >
-                <MenuIcon className="w-6 h-6 text-text-light dark:text-text-dark" />
-            </button>
-        )}
-        {currentSession ? (
-          <ChatView
-            session={currentSession}
-            onUpdateSession={handleUpdateSession}
-            settings={settings}
-          />
-        ) : (
-          <InitialSetup onGenerate={createNewSession} language={settings.language} />
-        )}
-      </main>
+    <div className="h-screen w-screen overflow-hidden bg-bkg-light dark:bg-bkg-dark p-0 md:p-4 flex items-center justify-center">
+      <div className="relative flex h-full w-full overflow-hidden md:rounded-2xl bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-2xl border border-border-light/50 dark:border-border-dark/50 shadow-lifted">
+        <HistorySidebar
+          sessions={sessions}
+          currentSessionId={currentSessionId}
+          isOpen={isSidebarOpen}
+          setIsOpen={setIsSidebarOpen}
+          onSelectSession={handleSelectSession}
+          onNewSession={handleNewSession}
+          onDeleteSession={handleDeleteSession}
+          onRenameSession={handleRenameSession}
+          onAutoRenameSession={handleAutoRenameSession}
+          settings={settings}
+          onUpdateSettings={setSettings}
+          onExportAll={handleExportAll}
+          onExportSession={handleExportSession}
+          onImportSessions={handleImportSessions}
+        />
+        <main className="flex-1 relative bg-surface-light dark:bg-surface-dark">
+          {!isSidebarOpen && (
+              <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2 m-4 rounded-lg hover:bg-surface-secondary-light dark:hover:bg-surface-secondary-dark absolute top-0 left-0 z-10"
+                  aria-label={t('app.open_menu')}
+                  title={t('app.open_menu')}
+              >
+                  <MenuIcon className="w-6 h-6 text-text-primary-light dark:text-text-primary-dark" />
+              </button>
+          )}
+          {currentSession ? (
+            <ChatView
+              session={currentSession}
+              onUpdateSession={handleUpdateSession}
+              settings={settings}
+            />
+          ) : (
+            <InitialSetup onGenerate={createNewSession} language={settings.language} />
+          )}
+        </main>
+      </div>
     </div>
   );
 };

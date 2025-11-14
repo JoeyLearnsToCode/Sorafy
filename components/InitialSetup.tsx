@@ -97,40 +97,40 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
   }, [idea]);
 
   return (
-    <div className="flex items-center justify-center h-full bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
-      <div className="max-w-4xl w-full p-8 flex flex-col space-y-8 h-full overflow-y-auto">
-        <h1 className="text-4xl font-bold text-center">{t('initial.title')}</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="flex items-center justify-center h-full text-text-primary-light dark:text-text-primary-dark">
+      <div className="max-w-2xl w-full p-8 flex flex-col space-y-8 h-full overflow-y-auto">
+        <h1 className="text-4xl font-bold text-center">Sorafy</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Prompt Language */}
           <div>
-            <label htmlFor="prompt-lang" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.prompt_language.label')}</label>
-            <select id="prompt-lang" value={promptLanguage} onChange={(e) => setPromptLanguage(e.target.value)} className="block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm">
+            <label htmlFor="prompt-lang" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.prompt_language.label')}</label>
+            <select id="prompt-lang" value={promptLanguage} onChange={(e) => setPromptLanguage(e.target.value)} className="block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm">
               <option>{t('initial.prompt_language.en')}</option><option>{t('initial.prompt_language.zh')}</option><option>{t('initial.prompt_language.ja')}</option><option>{t('initial.prompt_language.ko')}</option>
             </select>
           </div>
           {/* Orientation */}
           <div>
-            <label htmlFor="orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.orientation.label')}</label>
-            <select id="orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm">
+            <label htmlFor="orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.orientation.label')}</label>
+            <select id="orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm">
               <option value="landscape">{t('initial.orientation.landscape')}</option><option value="portrait">{t('initial.orientation.portrait')}</option>
             </select>
           </div>
           {/* Duration */}
           <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.duration.label')}</label>
-            <div className="flex items-center gap-3 mt-1">
-              <input id="duration" type="range" min="4" max="20" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full h-2 bg-surface-light dark:bg-surface-dark rounded-lg appearance-none cursor-pointer" />
+            <label htmlFor="duration" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.duration.label')}</label>
+            <div className="flex items-center gap-3">
+              <input id="duration" type="range" min="4" max="20" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full h-2 bg-surface-secondary-light dark:bg-surface-secondary-dark rounded-lg appearance-none cursor-pointer" />
               <span className="text-sm font-semibold w-8 text-center">{duration}s</span>
             </div>
           </div>
         </div>
         {/* Images */}
         <div>
-          <label className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.images.label')}</label>
-          <label onDragOver={handleDragOver} onDrop={handleDrop} className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-light dark:border-border-dark border-dashed rounded-lg cursor-pointer hover:border-primary-light dark:hover:border-primary-dark transition-colors">
+          <label className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.images.label')}</label>
+          <label onDragOver={handleDragOver} onDrop={handleDrop} className="mt-1 flex justify-center px-6 py-10 border-2 border-border-light dark:border-border-dark border-dashed rounded-xl cursor-pointer hover:border-primary dark:hover:border-primary-dark transition-colors bg-surface-secondary-light dark:bg-surface-secondary-dark">
             <div className="space-y-1 text-center">
-              <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <div className="flex text-sm text-text-secondary-light dark:text-text-secondary-dark"><p className="pl-1">{t('initial.images.cta')}</p></div>
+              <UploadIcon className="mx-auto h-10 w-10 text-text-secondary-light dark:text-text-secondary-dark" />
+              <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{t('initial.images.cta')}</p>
               <input id="file-upload" name="file-upload" type="file" multiple accept="image/*" className="sr-only" onChange={handleFileChange} />
             </div>
           </label>
@@ -147,7 +147,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
                 <button 
                     onClick={handleAnalyzeImage} 
                     disabled={isAnalyzing}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border-light dark:border-border-dark text-text-light dark:text-text-dark hover:bg-surface-light dark:hover:bg-surface-dark transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border-light dark:border-border-dark text-text-primary-light dark:text-text-primary-dark hover:bg-surface-secondary-light dark:hover:bg-surface-secondary-dark transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
                     <ScanIcon className="w-4 h-4" />
                     {isAnalyzing ? t('initial.images.analyzing_button') : t('initial.images.analyze_button')}
@@ -157,7 +157,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
         </div>
         {/* Idea */}
         <div>
-          <label htmlFor="idea" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.idea.label')}</label>
+          <label htmlFor="idea" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.idea.label')}</label>
           <textarea
             ref={textareaRef}
             id="idea"
@@ -165,13 +165,13 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             placeholder={t('initial.idea.placeholder')}
-            className="mt-1 block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm resize-y min-h-[80px] max-h-[400px]"
+            className="mt-1 block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm resize-y min-h-[80px] max-h-[400px]"
           />
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
         {/* Button */}
         <div className="text-center pt-4">
-          <button onClick={handleSubmit} className="w-full md:w-auto inline-flex justify-center py-3 px-16 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-primary-light hover:opacity-90 dark:bg-primary-dark dark:text-bkg-dark dark:hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light dark:focus:ring-offset-bkg-dark transition-opacity">
+          <button onClick={handleSubmit} className="w-full md:w-auto inline-flex justify-center py-3 px-16 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-primary hover:opacity-90 dark:bg-primary-dark dark:text-surface-dark dark:hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-bkg-dark transition-opacity">
             {t('initial.generate_button')}
           </button>
           <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2">{t('initial.generate_button.hint')}</p>
@@ -182,9 +182,9 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
                 href="https://github.com/JoeyLearnsToCode/Sorafy" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-light dark:hover:text-primary-dark transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors"
             >
-                <GithubIcon className="w-6 h-6" />
+                <GithubIcon className="w-5 h-5" />
                 <span>{t('initial.github.star')}</span>
             </a>
         </div>

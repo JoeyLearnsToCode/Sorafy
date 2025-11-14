@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-// FIX: The 'translations' object is exported from 'constants.ts', not 'types.ts'.
-import { Session, Message, Language, AppSettings, InitialSettings } from '../types';
+import { Session, Message, Language, AppSettings } from '../types';
 import { translations } from '../constants';
 import { getStreamingResponse } from '../services/geminiService';
 import ChatMessage from './ChatMessage';
+import { ArrowUpIcon, PaperclipIcon } from './icons';
 
 interface ChatViewProps {
   session: Session;
@@ -14,7 +14,6 @@ interface ChatViewProps {
 const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings }) => {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [dotCount, setDotCount] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sessionRef = useRef(session);
@@ -25,25 +24,14 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
 
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
   
-  useEffect(() => {
-    let interval: number | undefined;
-    if (isStreaming) {
-        interval = window.setInterval(() => {
-            setDotCount(prev => (prev % 3) + 1);
-        }, 500);
-    }
-    return () => {
-        if (interval) clearInterval(interval);
-    };
-  }, [isStreaming]);
-
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollTo(0, messagesEndRef.current.scrollHeight);
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [session.messages.length]);
+    // A small delay to allow the DOM to update before scrolling
+    setTimeout(scrollToBottom, 100);
+  }, [session.messages, isStreaming]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -64,11 +52,10 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
       const modelMessageId = (Date.now() + 1).toString();
       let modelResponse = '';
       
-      // Add a placeholder for the model's response immediately.
       const initialModelMessage: Message = {
         id: modelMessageId,
         role: 'model',
-        content: '...',
+        content: '',
         timestamp: Date.now()
       };
       onUpdateSession({ ...sessionRef.current, messages: [...messageHistory, initialModelMessage] });
@@ -81,14 +68,9 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
         if (msgIndex !== -1) {
             currentMessages[msgIndex] = { ...currentMessages[msgIndex], content: modelResponse };
             onUpdateSession({ ...sessionRef.current, messages: currentMessages });
-            scrollToBottom();
         }
       }
       
-       if (settings.debugMode) {
-        console.log("---GEMINI RESPONSE (COMPLETE)---");
-        console.log(modelResponse);
-      }
     } catch (error) {
       console.error("Error streaming response:", error);
       const errorMessage: Message = {
@@ -105,26 +87,19 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
 
 
   const handleSendMessage = useCallback(async () => {
-    if (isStreaming) return;
+    if (isStreaming || !input.trim()) return;
     
-    let currentMessages = session.messages;
-    const lastMessageIsUser = session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'user';
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+      timestamp: Date.now(),
+    };
+    const newMessages = [...session.messages, userMessage];
+    onUpdateSession({ ...session, messages: newMessages });
+    setInput('');
 
-    if (input.trim()) {
-        const userMessage: Message = {
-          id: Date.now().toString(),
-          role: 'user',
-          content: input,
-          timestamp: Date.now(),
-        };
-        currentMessages = [...session.messages, userMessage];
-        onUpdateSession({ ...session, messages: currentMessages });
-        setInput('');
-    } else if (!lastMessageIsUser) {
-        return;
-    }
-
-    await generateResponse(currentMessages);
+    await generateResponse(newMessages);
   }, [input, isStreaming, session, onUpdateSession, generateResponse]);
 
   useEffect(() => {
@@ -136,7 +111,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && e.ctrlKey && !isStreaming) {
+      if (e.key === 'Enter' && !e.shiftKey && !isStreaming) {
         e.preventDefault();
         handleSendMessage();
       }
@@ -161,7 +136,6 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
       newMessages[messageIndex].content = newContent;
       const finalMessages = newMessages.slice(0, messageIndex + 1);
       onUpdateSession({...session, messages: finalMessages });
-      // After editing, trigger a new response
       if (newMessages[messageIndex].role === 'user') {
         generateResponse(finalMessages);
       }
@@ -178,13 +152,15 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     }
   };
 
-  const lastMessageIsUser = session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'user';
-  const canSendMessage = !isStreaming && (!!input.trim() || lastMessageIsUser);
+  const canSendMessage = !isStreaming && !!input.trim();
 
   return (
-    <div className="flex flex-col h-screen bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto">
+    <div className="flex flex-col h-full text-text-primary-light dark:text-text-primary-dark">
+      <div className="flex-shrink-0 flex items-center justify-center p-4 border-b border-border-light dark:border-border-dark">
+        <h2 className="font-semibold text-lg">Sorafy</h2>
+      </div>
+      <div ref={messagesEndRef} className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4">
           {session.messages.map((msg, index) => (
             <ChatMessage 
               key={msg.id} 
@@ -192,33 +168,46 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
               index={index} 
               language={settings.language} 
               isLastMessage={index === session.messages.length - 1}
-              isStreaming={isStreaming}
+              isStreaming={isStreaming && index === session.messages.length - 1}
               onDelete={handleDeleteMessage} 
               onEdit={handleEditMessage}
               onRegenerate={handleRegenerate}
               />
           ))}
+           {isStreaming && session.messages[session.messages.length - 1]?.role === 'user' && (
+              <div className="flex justify-end p-4">
+                  <div className="bg-surface-light dark:bg-surface-dark rounded-xl rounded-br-none p-4 shadow-soft">
+                      <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                      </div>
+                  </div>
+              </div>
+          )}
         </div>
-        <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 border-t border-border-light dark:border-border-dark bg-bkg-light dark:bg-bkg-dark">
+      <div className="p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="relative">
+          <div className="relative flex items-center bg-surface-light dark:bg-surface-secondary-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark p-2">
+            <button className="p-2 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark">
+                <PaperclipIcon className="w-5 h-5" />
+            </button>
             <textarea
               ref={textareaRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               placeholder={t('chat.input.placeholder')}
               rows={1}
-              className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-3 px-4 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"
+              className="flex-1 bg-transparent text-text-primary-light dark:text-text-primary-dark p-2 resize-none focus:outline-none"
               disabled={isStreaming}
             />
             <button
               onClick={handleSendMessage}
               disabled={!canSendMessage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary-light dark:bg-primary-dark text-white rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="bg-text-primary-light dark:bg-text-primary-dark text-surface-light dark:text-surface-dark rounded-lg w-9 h-9 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex-shrink-0"
             >
-              {isStreaming ? '.'.repeat(dotCount) : t('chat.send_button')}
+                <ArrowUpIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
