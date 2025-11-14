@@ -67,3 +67,13 @@ export const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const ChevronLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="15 18 9 12 15 6"></polyline></svg>
 );
+
+export const GithubIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={className} aria-label="GitHub Icon">
+    <circle cx="12" cy="12" r="12" className="fill-bkg-light dark:fill-bkg-dark" />
+    <path
+      className="fill-text-light dark:fill-text-dark"
+      d="M12 0.296997C5.373 0.296997 0 5.670007 0 12.297C0 17.597 3.438 22.097 8.205 23.482C8.805 23.594 9.025 23.232 9.025 22.917C9.025 22.632 9.015 21.592 9.01 20.557C5.673 21.282 4.968 19.182 4.968 19.182C4.343 17.572 3.553 17.227 3.553 17.227C2.468 16.482 3.638 16.502 3.638 16.502C4.843 16.587 5.483 17.817 5.483 17.817C6.553 19.652 8.363 19.122 9.058 18.817C9.168 18.042 9.483 17.512 9.838 17.207C7.173 16.907 4.373 15.867 4.373 9.93201C4.373 8.62201 4.838 7.55201 5.608 6.73201C5.473 6.42701 4.968 4.93201 5.733 3.29201C5.733 3.29201 6.738 2.97201 9.028 4.49201C9.988 4.22701 11.003 4.09201 12.018 4.08701C13.033 4.09201 14.048 4.22701 15.008 4.49201C17.298 2.97201 18.303 3.29201 18.303 3.29201C19.068 4.93201 18.563 6.42701 18.428 6.73201C19.198 7.55201 19.663 8.62201 19.663 9.93201C19.663 15.877 16.858 16.907 14.198 17.207C14.618 17.577 15.023 18.297 15.023 19.517C15.023 21.122 15.008 22.407 15.008 22.727C15.008 23.047 15.223 23.412 15.828 23.297C20.568 21.822 24.003 17.402 24.003 12.297C24.003 5.670007 18.633 0.296997 12 0.296997Z"
+    />
+  </svg>
+);

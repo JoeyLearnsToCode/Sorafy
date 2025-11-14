@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { InitialSettings, ImageFile, Language, Orientation } from '../types';
 import { translations } from '../constants';
 import { analyzeImage } from '../services/geminiService';
-import { ScanIcon } from './icons';
+import { ScanIcon, GithubIcon } from './icons';
 
 
 interface InitialSetupProps {
@@ -97,8 +97,8 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
   }, [idea]);
 
   return (
-    <div className="flex items-center justify-center h-full bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
-      <div className="max-w-3xl w-full p-8 space-y-8">
+    <div className="flex items-center justify-center h-full bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark relative">
+      <div className="max-w-3xl w-full p-8 space-y-8 h-full overflow-y-auto pb-24">
         <h1 className="text-3xl font-bold text-center">{t('initial.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Prompt Language */}
@@ -176,6 +176,18 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
           </button>
           <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2">{t('initial.generate_button.hint')}</p>
         </div>
+      </div>
+      {/* GitHub Link */}
+      <div className="absolute bottom-6 w-full text-center">
+          <a 
+              href="https://github.com/JoeyLearnsToCode/Sorafy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-light dark:hover:text-primary-dark transition-colors"
+          >
+              <GithubIcon className="w-6 h-6" />
+              <span>{t('initial.github.star')}</span>
+          </a>
       </div>
     </div>
   );
