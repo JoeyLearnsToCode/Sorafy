@@ -49,7 +49,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     const el = textareaRef.current;
     if (el) {
         el.style.height = 'auto';
-        el.style.height = `${el.scrollHeight}px`;
+        el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
     }
   }, [input]);
 
@@ -131,7 +131,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
      if (session.messages.length === 1 && session.messages[0].role === 'user') {
       generateResponse(session.messages);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks-exhaustive-deps
   }, [session.id]); // Only runs when session ID changes (i.e., new session is created)
 
   useEffect(() => {
@@ -184,22 +184,24 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
   return (
     <div className="flex flex-col h-screen bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
       <div className="flex-1 overflow-y-auto">
-        {session.messages.map((msg, index) => (
-          <ChatMessage 
-            key={msg.id} 
-            message={msg} 
-            index={index} 
-            language={settings.language} 
-            isLastMessage={index === session.messages.length - 1}
-            isStreaming={isStreaming}
-            onDelete={handleDeleteMessage} 
-            onEdit={handleEditMessage}
-            onRegenerate={handleRegenerate}
-            />
-        ))}
+        <div className="max-w-4xl mx-auto">
+          {session.messages.map((msg, index) => (
+            <ChatMessage 
+              key={msg.id} 
+              message={msg} 
+              index={index} 
+              language={settings.language} 
+              isLastMessage={index === session.messages.length - 1}
+              isStreaming={isStreaming}
+              onDelete={handleDeleteMessage} 
+              onEdit={handleEditMessage}
+              onRegenerate={handleRegenerate}
+              />
+          ))}
+        </div>
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-surface-light dark:bg-surface-dark">
+      <div className="p-4 border-t border-border-light dark:border-border-dark bg-bkg-light dark:bg-bkg-dark">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             <textarea
@@ -208,13 +210,13 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
               onChange={e => setInput(e.target.value)}
               placeholder={t('chat.input.placeholder')}
               rows={1}
-              className="w-full bg-bkg-light dark:bg-bkg-dark border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-3 px-4 pr-20 resize-none focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"
+              className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-3 px-4 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"
               disabled={isStreaming}
             />
             <button
               onClick={handleSendMessage}
               disabled={!canSendMessage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary-light dark:bg-primary-dark text-white rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary-light dark:bg-primary-dark text-white rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
               {isStreaming ? '.'.repeat(dotCount) : t('chat.send_button')}
             </button>

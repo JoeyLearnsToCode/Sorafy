@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { InitialSettings, ImageFile, Language, Orientation } from '../types';
 import { translations } from '../constants';
 import { analyzeImage } from '../services/geminiService';
-import { ScanIcon, GithubIcon } from './icons';
+import { ScanIcon, GithubIcon, UploadIcon } from './icons';
 
 
 interface InitialSetupProps {
@@ -13,7 +13,7 @@ interface InitialSetupProps {
 
 const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => {
   const [promptLanguage, setPromptLanguage] = useState('English');
-  const [orientation, setOrientation] = useState<Orientation>('portrait');
+  const [orientation, setOrientation] = useState<Orientation>('landscape');
   const [duration, setDuration] = useState(10);
   const [referenceImages, setReferenceImages] = useState<ImageFile[]>([]);
   const [idea, setIdea] = useState('');
@@ -97,29 +97,29 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
   }, [idea]);
 
   return (
-    <div className="flex items-center justify-center h-full bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark relative">
-      <div className="max-w-3xl w-full p-8 space-y-8 h-full overflow-y-auto pb-24">
-        <h1 className="text-3xl font-bold text-center">{t('initial.title')}</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="flex items-center justify-center h-full bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark">
+      <div className="max-w-4xl w-full p-8 flex flex-col space-y-8 h-full overflow-y-auto">
+        <h1 className="text-4xl font-bold text-center">{t('initial.title')}</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Prompt Language */}
           <div>
-            <label htmlFor="prompt-lang" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.prompt_language.label')}</label>
-            <select id="prompt-lang" value={promptLanguage} onChange={(e) => setPromptLanguage(e.target.value)} className="mt-1 block w-full bg-surface-light dark:bg-surface-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-light focus:border-primary-light sm:text-sm">
+            <label htmlFor="prompt-lang" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.prompt_language.label')}</label>
+            <select id="prompt-lang" value={promptLanguage} onChange={(e) => setPromptLanguage(e.target.value)} className="block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm">
               <option>{t('initial.prompt_language.en')}</option><option>{t('initial.prompt_language.zh')}</option><option>{t('initial.prompt_language.ja')}</option><option>{t('initial.prompt_language.ko')}</option>
             </select>
           </div>
           {/* Orientation */}
           <div>
-            <label htmlFor="orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.orientation.label')}</label>
-            <select id="orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="mt-1 block w-full bg-surface-light dark:bg-surface-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-light focus:border-primary-light sm:text-sm">
-              <option value="portrait">{t('initial.orientation.portrait')}</option><option value="landscape">{t('initial.orientation.landscape')}</option>
+            <label htmlFor="orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.orientation.label')}</label>
+            <select id="orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm">
+              <option value="landscape">{t('initial.orientation.landscape')}</option><option value="portrait">{t('initial.orientation.portrait')}</option>
             </select>
           </div>
           {/* Duration */}
           <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.duration.label')}</label>
-            <div className="flex items-center gap-2 mt-1">
-              <input id="duration" type="range" min="4" max="20" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+            <label htmlFor="duration" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1">{t('initial.duration.label')}</label>
+            <div className="flex items-center gap-3 mt-1">
+              <input id="duration" type="range" min="4" max="20" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full h-2 bg-surface-light dark:bg-surface-dark rounded-lg appearance-none cursor-pointer" />
               <span className="text-sm font-semibold w-8 text-center">{duration}s</span>
             </div>
           </div>
@@ -127,27 +127,27 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
         {/* Images */}
         <div>
           <label className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">{t('initial.images.label')}</label>
-          <label onDragOver={handleDragOver} onDrop={handleDrop} className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md cursor-pointer">
+          <label onDragOver={handleDragOver} onDrop={handleDrop} className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-light dark:border-border-dark border-dashed rounded-lg cursor-pointer hover:border-primary-light dark:hover:border-primary-dark transition-colors">
             <div className="space-y-1 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <div className="flex text-sm text-gray-600 dark:text-gray-400"><p className="pl-1">{t('initial.images.cta')}</p></div>
+              <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="flex text-sm text-text-secondary-light dark:text-text-secondary-dark"><p className="pl-1">{t('initial.images.cta')}</p></div>
               <input id="file-upload" name="file-upload" type="file" multiple accept="image/*" className="sr-only" onChange={handleFileChange} />
             </div>
           </label>
           {referenceImages.length > 0 && (
-            <div className="mt-2 space-y-2">
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
                 {referenceImages.map((img, i) => (
                     <div key={i} className="relative group">
-                    <img src={img.dataUrl} alt={img.name} className="w-full h-24 object-cover rounded-md" />
-                    <button onClick={() => removeImage(i)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 m-1 opacity-0 group-hover:opacity-100">&times;</button>
+                    <img src={img.dataUrl} alt={img.name} className="w-full h-28 object-cover rounded-lg border border-border-light dark:border-border-dark" />
+                    <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
                     </div>
                 ))}
                 </div>
                 <button 
                     onClick={handleAnalyzeImage} 
                     disabled={isAnalyzing}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-primary-light dark:border-primary-dark text-primary-light dark:text-primary-dark hover:bg-primary-light/10 dark:hover:bg-primary-dark/10 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border-light dark:border-border-dark text-text-light dark:text-text-dark hover:bg-surface-light dark:hover:bg-surface-dark transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
                     <ScanIcon className="w-4 h-4" />
                     {isAnalyzing ? t('initial.images.analyzing_button') : t('initial.images.analyze_button')}
@@ -165,29 +165,29 @@ const InitialSetup: React.FC<InitialSetupProps> = ({ onGenerate, language }) => 
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             placeholder={t('initial.idea.placeholder')}
-            className="mt-1 block w-full bg-surface-light dark:bg-surface-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-light focus:border-primary-light sm:text-sm resize-y min-h-[80px] max-h-[400px]"
+            className="mt-1 block w-full bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary-light/50 dark:focus:ring-primary-dark/50 focus:border-primary-light dark:focus:border-primary-dark sm:text-sm resize-y min-h-[80px] max-h-[400px]"
           />
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
         {/* Button */}
-        <div className="text-center">
-          <button onClick={handleSubmit} className="w-full md:w-auto inline-flex justify-center py-3 px-12 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-light hover:bg-indigo-700 dark:bg-primary-dark dark:hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light dark:focus:ring-offset-bkg-dark">
+        <div className="text-center pt-4">
+          <button onClick={handleSubmit} className="w-full md:w-auto inline-flex justify-center py-3 px-16 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-primary-light hover:opacity-90 dark:bg-primary-dark dark:text-bkg-dark dark:hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light dark:focus:ring-offset-bkg-dark transition-opacity">
             {t('initial.generate_button')}
           </button>
           <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2">{t('initial.generate_button.hint')}</p>
         </div>
-      </div>
-      {/* GitHub Link */}
-      <div className="absolute bottom-6 w-full text-center">
-          <a 
-              href="https://github.com/JoeyLearnsToCode/Sorafy" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-light dark:hover:text-primary-dark transition-colors"
-          >
-              <GithubIcon className="w-6 h-6" />
-              <span>{t('initial.github.star')}</span>
-          </a>
+         {/* GitHub Link */}
+        <div className="w-full text-center mt-auto pt-8">
+            <a 
+                href="https://github.com/JoeyLearnsToCode/Sorafy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-light dark:hover:text-primary-dark transition-colors"
+            >
+                <GithubIcon className="w-6 h-6" />
+                <span>{t('initial.github.star')}</span>
+            </a>
+        </div>
       </div>
     </div>
   );

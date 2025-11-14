@@ -169,117 +169,113 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       />
       <div className={`
         fixed top-0 left-0 h-full z-30
-        bg-surface-light dark:bg-surface-dark text-text-light dark:text-text-dark
-        transition-transform duration-300 ease-in-out 
+        bg-bkg-light dark:bg-bkg-dark text-text-light dark:text-text-dark
+        transition-transform duration-300 ease-in-out border-r border-border-light dark:border-border-dark
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:relative md:translate-x-0 md:transition-all overflow-hidden
-        ${isOpen ? 'md:w-64' : 'md:w-0'}
+        ${isOpen ? 'md:w-72' : 'md:w-0'}
       `}>
-        <div className={`w-64 h-full flex flex-col p-2 overflow-hidden`}>
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-lg font-semibold px-2 truncate">{t('app.title')}</h1>
-            <button onClick={() => setIsOpen(false)} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" title={t('sidebar.collapse_sidebar')}>
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-          </div>
+        <div className={`w-72 h-full flex flex-col p-3 overflow-hidden`}>
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-border-light dark:border-border-dark">
+                <h1 className="text-xl font-bold px-2 truncate">{t('app.title')}</h1>
+                <button onClick={() => setIsOpen(false)} className="p-2 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark" title={t('sidebar.collapse_sidebar')}>
+                    <ChevronLeftIcon className="w-5 h-5" />
+                </button>
+            </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <button
-              onClick={onNewSession}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 mb-4 text-sm font-medium rounded-md border border-primary-light dark:border-primary-dark text-primary-light dark:text-primary-dark hover:bg-primary-light/10 dark:hover:bg-primary-dark/10 transition-colors"
-            >
-              <PlusIcon className="w-4 h-4" />
-              {t('sidebar.new_creation')}
-            </button>
-            <h2 className="text-xs font-semibold uppercase text-text-secondary-light dark:text-text-secondary-dark px-2 mb-2">{t('sidebar.history')}</h2>
-            <nav className="flex flex-col gap-1">
-              {sessions.sort((a,b) => b.createdAt - a.createdAt).map(session => (
-                <div key={session.id} className={`group flex items-center rounded-md text-sm transition-colors ${currentSessionId === session.id ? 'bg-primary-light/20 dark:bg-primary-dark/20' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                  <button
-                    onClick={() => onSelectSession(session.id)}
-                    className="flex items-center gap-2 flex-1 min-w-0 text-left px-2 py-1.5"
-                    disabled={renamingId === session.id}
-                  >
-                    <MessageSquareIcon className="w-4 h-4 flex-shrink-0" />
-                    {renamingId === session.id ? (
-                        <input 
-                          ref={renameInputRef}
-                          type="text"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onBlur={submitRename}
-                          onKeyDown={handleRenameKeyDown}
-                          className="bg-transparent focus:bg-white dark:focus:bg-black w-full outline-none ring-1 ring-primary-light rounded-sm px-1 text-sm"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                    ) : (
-                        <span className="truncate flex-1">{session.title}</span>
-                    )}
-                  </button>
-                  {renamingId !== session.id && (
-                    <div className="relative">
-                      <button onClick={(e) => handleMenuToggle(e, session.id)} className="p-1 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 mr-1" disabled={autoRenamingId === session.id}>
-                        <MoreHorizontalIcon className="w-4 h-4" />
-                      </button>
-                      {menuId === session.id && (
-                        <div ref={menuRef} className={`absolute z-10 right-0 w-40 bg-bkg-light dark:bg-bkg-dark border border-gray-300 dark:border-gray-600 rounded-md shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-                          <button onClick={() => startRename(session)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">{t('chat.edit_button')}</button>
-                          <button onClick={() => handleAutoRename(session.id)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50">
-                            <SparklesIcon className="w-4 h-4"/>
-                            {autoRenamingId === session.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}
-                          </button>
-                          <button onClick={() => { onDeleteSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500">{t('chat.delete_button')}</button>
-                          <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
-                          <button onClick={() => { onExportSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <DownloadIcon className="w-4 h-4" />
-                            {t('sidebar.export_session')}
-                          </button>
+            <div className="flex-1 overflow-y-auto pr-1">
+                <button
+                    onClick={onNewSession}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-4 text-sm font-semibold rounded-lg bg-primary-light text-white dark:bg-primary-dark dark:text-bkg-dark shadow-sm hover:opacity-90 transition-opacity"
+                >
+                    <PlusIcon className="w-5 h-5" />
+                    {t('sidebar.new_creation')}
+                </button>
+                <h2 className="text-xs font-semibold uppercase text-text-secondary-light dark:text-text-secondary-dark px-2 mb-2">{t('sidebar.history')}</h2>
+                <nav className="flex flex-col gap-1">
+                {sessions.sort((a,b) => b.createdAt - a.createdAt).map(session => (
+                    <div key={session.id} className={`group flex items-center rounded-lg text-sm transition-colors ${currentSessionId === session.id ? 'bg-primary-light/10 dark:bg-primary-dark/10 text-primary-light dark:text-primary-dark font-semibold' : 'hover:bg-surface-light dark:hover:bg-surface-dark'}`}>
+                    <button
+                        onClick={() => onSelectSession(session.id)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left px-3 py-2"
+                        disabled={renamingId === session.id}
+                    >
+                        <MessageSquareIcon className="w-4 h-4 flex-shrink-0" />
+                        {renamingId === session.id ? (
+                            <input 
+                            ref={renameInputRef}
+                            type="text"
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={submitRename}
+                            onKeyDown={handleRenameKeyDown}
+                            className="bg-bkg-light dark:bg-bkg-dark w-full outline-none ring-2 ring-primary-light rounded-md px-1.5 py-0.5 text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                            />
+                        ) : (
+                            <span className="truncate flex-1">{session.title}</span>
+                        )}
+                    </button>
+                    {renamingId !== session.id && (
+                        <div className="relative">
+                        <button onClick={(e) => handleMenuToggle(e, session.id)} className="p-2 rounded-md hover:bg-surface-light dark:hover:bg-surface-dark mr-1 opacity-0 group-hover:opacity-100 transition-opacity" disabled={autoRenamingId === session.id}>
+                            <MoreHorizontalIcon className="w-4 h-4" />
+                        </button>
+                        {menuId === session.id && (
+                            <div ref={menuRef} className={`absolute z-10 right-0 w-48 bg-bkg-light dark:bg-bkg-dark border border-border-light dark:border-border-dark rounded-lg shadow-lg text-sm ${menuPosition === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
+                            <button onClick={() => startRename(session)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-surface-light dark:hover:bg-surface-dark disabled:opacity-50">{t('chat.edit_button')}</button>
+                            <button onClick={() => handleAutoRename(session.id)} disabled={autoRenamingId === session.id} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-surface-light dark:hover:bg-surface-dark disabled:opacity-50">
+                                <SparklesIcon className="w-4 h-4"/>
+                                {autoRenamingId === session.id ? t('sidebar.autorenaming') : t('sidebar.autorename')}
+                            </button>
+                            <button onClick={() => { onDeleteSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-surface-light dark:hover:bg-surface-dark text-red-500">{t('chat.delete_button')}</button>
+                            <div className="border-t border-border-light dark:border-border-dark my-1"></div>
+                            <button onClick={() => { onExportSession(session.id); setMenuId(null); }} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-surface-light dark:hover:bg-surface-dark">
+                                <DownloadIcon className="w-4 h-4" />
+                                {t('sidebar.export_session')}
+                            </button>
+                            </div>
+                        )}
                         </div>
-                      )}
+                    )}
                     </div>
-                  )}
+                ))}
+                </nav>
+            </div>
+            <div className="flex-shrink-0 border-t border-border-light dark:border-border-dark pt-3 space-y-2">
+                <div className="px-2 flex items-center justify-between text-sm gap-2">
+                    <button onClick={handleImportClick} className="flex-1 flex items-center justify-center gap-2 px-2 py-2 text-sm border border-border-light dark:border-border-dark rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark">
+                        <UploadIcon className="w-4 h-4" />
+                        {t('sidebar.settings.import')}
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
+                    <button onClick={onExportAll} className="flex-1 flex items-center justify-center gap-2 px-2 py-2 text-sm border border-border-light dark:border-border-dark rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark">
+                        <DownloadIcon className="w-4 h-4" />
+                        {t('sidebar.settings.export_all')}
+                    </button>
                 </div>
-              ))}
-            </nav>
-          </div>
-          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-2">
-            {/* Import/Export buttons */}
-            <div className="px-2 py-1 flex items-center justify-between text-sm gap-2">
-              <button onClick={handleImportClick} className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-                <UploadIcon className="w-4 h-4" />
-                {t('sidebar.settings.import')}
-              </button>
-              <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
-              <button onClick={onExportAll} className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-                <DownloadIcon className="w-4 h-4" />
-                {t('sidebar.settings.export_all')}
-              </button>
-            </div>
+                
+                <div className="px-2 py-1 flex items-center justify-between text-sm">
+                    <label htmlFor="language-select" className="text-text-secondary-light dark:text-text-secondary-dark">{t('sidebar.settings.language')}</label>
+                    <select id="language-select" value={settings.language} onChange={handleLanguageChange} className="bg-bkg-light dark:bg-bkg-dark rounded-md border border-border-light dark:border-border-dark p-1.5 text-sm focus:ring-1 focus:ring-primary-light dark:focus:ring-primary-dark focus:outline-none">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+                
+                <div className="px-2 py-1 flex items-center justify-between text-sm">
+                    <label className="text-text-secondary-light dark:text-text-secondary-dark">{t('sidebar.settings.theme')}</label>
+                    <div className="flex items-center gap-1 border border-border-light dark:border-border-dark rounded-lg p-1">
+                        <button onClick={() => handleThemeChange('light')} className={`p-1.5 rounded-md ${settings.theme === 'light' ? 'bg-primary-light text-white' : 'hover:bg-surface-light'}`}><SunIcon className="w-4 h-4" /></button>
+                        <button onClick={() => handleThemeChange('dark')} className={`p-1.5 rounded-md ${settings.theme === 'dark' ? 'bg-primary-dark text-white' : 'hover:bg-surface-dark'}`}><MoonIcon className="w-4 h-4" /></button>
+                    </div>
+                </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-            
-            {/* Language */}
-            <div className="px-2 py-1 flex items-center justify-between text-sm">
-              <label htmlFor="language-select">{t('sidebar.settings.language')}</label>
-              <select id="language-select" value={settings.language} onChange={handleLanguageChange} className="bg-transparent rounded-md border border-gray-300 dark:border-gray-600 p-1 text-xs">
-                <option value="en">English</option>
-                <option value="zh">中文</option>
-              </select>
+                <div className="px-2 py-1 flex items-center justify-between text-sm">
+                    <label htmlFor="debug-toggle" className="text-text-secondary-light dark:text-text-secondary-dark">{t('sidebar.settings.debug_mode')}</label>
+                    <input type="checkbox" id="debug-toggle" checked={settings.debugMode} onChange={handleDebugModeChange} className="toggle-checkbox" />
+                </div>
             </div>
-            {/* Theme */}
-            <div className="px-2 py-1 flex items-center justify-between text-sm">
-              <label>{t('sidebar.settings.theme')}</label>
-              <div className="flex items-center gap-1 border border-gray-300 dark:border-gray-600 rounded-md p-0.5">
-                <button onClick={() => handleThemeChange('light')} className={`p-1 rounded ${settings.theme === 'light' ? 'bg-primary-light/20 dark:bg-primary-dark/20' : ''}`}><SunIcon className="w-4 h-4" /></button>
-                <button onClick={() => handleThemeChange('dark')} className={`p-1 rounded ${settings.theme === 'dark' ? 'bg-primary-light/20 dark:bg-primary-dark/20' : ''}`}><MoonIcon className="w-4 h-4" /></button>
-              </div>
-            </div>
-            {/* Debug Mode */}
-            <div className="px-2 py-1 flex items-center justify-between text-sm">
-              <label htmlFor="debug-toggle">{t('sidebar.settings.debug_mode')}</label>
-              <input type="checkbox" id="debug-toggle" checked={settings.debugMode} onChange={handleDebugModeChange} className="toggle-checkbox" />
-            </div>
-          </div>
         </div>
       </div>
     </>

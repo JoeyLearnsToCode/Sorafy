@@ -18,6 +18,10 @@ const App: React.FC = () => {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // FIX: Define the translation helper function once at the component level and correct its implementation.
+  // This avoids a faulty recursive definition and makes it available to all component functions and the render method.
+  const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
+
   const currentSession = sessions.find(s => s.id === currentSessionId) || null;
 
   useEffect(() => {
@@ -124,7 +128,6 @@ const App: React.FC = () => {
   };
   
   const handleImportSessions = (importedSessions: Session[]) => {
-      const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
       // Generate new IDs and timestamps to avoid conflicts and ensure they appear at the top
       const newSessions = importedSessions.map((s, index) => ({
           ...s,
@@ -135,8 +138,6 @@ const App: React.FC = () => {
       setSessions(prev => [...newSessions, ...prev]);
       alert(t('sidebar.import.success').replace('{count}', newSessions.length.toString()));
   };
-
-  const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
@@ -160,7 +161,7 @@ const App: React.FC = () => {
         {!isSidebarOpen && (
             <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 m-2 rounded-md hover:bg-surface-light dark:hover:bg-surface-dark absolute top-0 left-0 z-10"
+                className="p-2 m-4 rounded-lg hover:bg-surface-light dark:hover:bg-surface-dark absolute top-0 left-0 z-10"
                 aria-label={t('app.open_menu')}
                 title={t('app.open_menu')}
             >
