@@ -71,7 +71,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
   const promptRegex = /```text([\s\S]*?)```/;
   const match = message.content.match(promptRegex);
   const promptText = match ? match[1].trim() : null;
-  const otherText = promptText ? message.content.replace(promptRegex, '').trim() : message.content;
+  
+  let textBeforePrompt = '';
+  let textAfterPrompt = '';
+
+  if (match && match.index !== undefined) {
+    textBeforePrompt = message.content.substring(0, match.index).trim();
+    textAfterPrompt = message.content.substring(match.index + match[0].length).trim();
+  } else {
+    textBeforePrompt = message.content.trim();
+  }
 
   let initialSettingsData: any = null;
   if (message.role === 'user' && index === 0) {
@@ -160,13 +169,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
                     {/* AI Bubble */}
                     {message.role === 'model' && (
                         <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none shadow-soft overflow-hidden">
-                            {otherText && (
+                            {textBeforePrompt && (
                                 <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{otherText}</ReactMarkdown>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{textBeforePrompt}</ReactMarkdown>
                                 </div>
                             )}
                             {promptText && (
-                                <div className={`${otherText ? 'border-t border-border-light dark:border-border-dark' : ''}`}>
+                                <div className={`${textBeforePrompt ? 'border-t border-border-light dark:border-border-dark' : ''}`}>
                                     <div className="flex justify-between items-center px-4 py-2 bg-surface-light dark:bg-surface-dark">
                                         <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
                                         <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary-dark hover:opacity-80">
@@ -175,6 +184,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
                                         </button>
                                     </div>
                                     <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left bg-surface-secondary-light dark:bg-surface-secondary-dark"><code>{promptText}</code></pre>
+                                </div>
+                            )}
+                            {textAfterPrompt && (
+                                <div className={`prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4 ${(textBeforePrompt || promptText) ? 'border-t border-border-light dark:border-border-dark' : ''}`}>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{textAfterPrompt}</ReactMarkdown>
                                 </div>
                             )}
                         </div>

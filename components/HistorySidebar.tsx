@@ -183,6 +183,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
         bg-surface-secondary-light/80 dark:bg-surface-dark/80 backdrop-blur-lg
         text-text-primary-light dark:text-text-primary-dark
         transition-transform duration-300 ease-in-out border-r border-border-light/80 dark:border-border-dark/80
+        overflow-hidden
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:relative md:translate-x-0 md:transition-all
         ${isOpen ? 'md:w-72' : 'md:w-0'}
