@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Message, Language } from '../types';
+import { Message, Language, Orientation, ImageFile } from '../types';
 import { translations } from '../constants';
-import { UserIcon, GeminiIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon } from './icons';
+import { UserIcon, GeminiIcon, CopyIcon, CheckIcon, Edit2Icon, Trash2Icon, RefreshCwIcon, UploadIcon } from './icons';
 
 interface ChatMessageProps {
   message: Message;
@@ -84,10 +84,142 @@ const PromptCodeBlock: React.FC<{ promptText: string, t: (key: keyof typeof tran
     );
 };
 
+const InitialSettingsEditor: React.FC<{
+  initialData: any;
+  onSave: (newData: any) => void;
+  onCancel: () => void;
+  language: Language;
+}> = ({ initialData, onSave, onCancel, language }) => {
+  const [promptLanguage, setPromptLanguage] = useState(initialData.promptLanguage || 'English');
+  const [orientation, setOrientation] = useState<Orientation>(initialData.orientation || 'portrait');
+  const [duration, setDuration] = useState(initialData.duration || 10);
+  const [referenceImages, setReferenceImages] = useState<ImageFile[]>(
+    (initialData.images || []).map((img: any, i: number) => ({ name: `image-${i + 1}`, ...img }))
+  );
+  const [idea, setIdea] = useState(initialData.idea || '');
+  const ideaTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const t = (key: keyof typeof translations.en) => translations[language][key] || key;
+
+  const handleFiles = (files: File[]) => {
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    imageFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setReferenceImages(prev => [...prev, { name: file.name, type: file.type, dataUrl: e.target?.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => e.preventDefault();
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) {
+      handleFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setReferenceImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    const el = ideaTextareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [idea]);
+
+  const handleSaveClick = () => {
+    const saveData = {
+        promptLanguage,
+        orientation,
+        duration,
+        idea,
+        referenceImages: referenceImages,
+        images: referenceImages.map(img => ({ type: img.type, dataUrl: img.dataUrl })),
+    };
+    onSave(saveData);
+  };
+
+  return (
+    <div className="p-4 space-y-6 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl my-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label htmlFor="edit-prompt-lang" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.prompt_language.label')}</label>
+            <select id="edit-prompt-lang" value={promptLanguage} onChange={(e) => setPromptLanguage(e.target.value)} className="block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm">
+              <option>English</option><option>Chinese</option><option>Japanese</option><option>Korean</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="edit-orientation" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.orientation.label')}</label>
+            <select id="edit-orientation" value={orientation} onChange={(e) => setOrientation(e.target.value as Orientation)} className="block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm">
+              <option value="portrait">{t('initial.orientation.portrait')}</option>
+              <option value="landscape">{t('initial.orientation.landscape')}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="edit-duration" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.duration.label')}</label>
+            <div className="flex items-center gap-3">
+              <input id="edit-duration" type="range" min="4" max="20" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full h-2 bg-surface-secondary-light dark:bg-surface-secondary-dark rounded-lg appearance-none cursor-pointer" />
+              <span className="text-sm font-semibold w-8 text-center">{duration}s</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.images.label')}</label>
+          <label onDragOver={handleDragOver} onDrop={handleDrop} className="mt-1 flex justify-center px-6 py-10 border-2 border-border-light dark:border-border-dark border-dashed rounded-xl cursor-pointer hover:border-primary dark:hover:border-primary-dark transition-colors bg-surface-secondary-light dark:bg-surface-secondary-dark">
+            <div className="space-y-1 text-center">
+              <UploadIcon className="mx-auto h-10 w-10 text-text-secondary-light dark:text-text-secondary-dark" />
+              <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{t('initial.images.cta')}</p>
+              <input id="edit-file-upload" name="edit-file-upload" type="file" multiple accept="image/*" className="sr-only" onChange={handleFileChange} />
+            </div>
+          </label>
+          {referenceImages.length > 0 && (
+            <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-4">
+            {referenceImages.map((img, i) => (
+                <div key={i} className="relative group">
+                <img src={img.dataUrl} alt={img.name} className="w-full h-28 object-cover rounded-lg border border-border-light dark:border-border-dark" />
+                <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
+                </div>
+            ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <label htmlFor="edit-idea" className="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">{t('initial.idea.label')}</label>
+          <textarea
+            ref={ideaTextareaRef}
+            id="edit-idea"
+            rows={3}
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            placeholder={t('initial.idea.placeholder')}
+            className="mt-1 block w-full bg-surface-secondary-light dark:bg-surface-secondary-dark border border-border-light dark:border-border-dark rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-dark/50 focus:border-primary dark:focus:border-primary-dark sm:text-sm resize-y min-h-[80px] max-h-[400px]"
+          />
+        </div>
+        <div className="flex gap-2">
+            <button onClick={handleSaveClick} className="px-4 py-2 text-sm bg-primary dark:bg-primary-dark text-white rounded-lg hover:opacity-90">{t('chat.save_button')}</button>
+            <button onClick={onCancel} className="px-4 py-2 text-sm bg-border-light dark:bg-border-dark rounded-lg hover:bg-border-light/80 dark:hover:bg-border-dark/80">{t('chat.cancel_button')}</button>
+        </div>
+    </div>
+  );
+};
+
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isLastMessage, isStreaming, onDelete, onEdit, onRegenerate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
+  const [editedSettings, setEditedSettings] = useState<any | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const t = (key: keyof typeof translations.en) => translations[language][key] || key;
   
@@ -113,71 +245,89 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
     setIsEditing(false);
   }
 
+  const handleSaveSettingsEdit = (newSettings: any) => {
+    onEdit(message.id, JSON.stringify(newSettings, null, 2));
+    setIsEditing(false);
+  };
+
   useEffect(() => {
-    if (isEditing && textareaRef.current) {
+    if (isEditing) {
+      if (message.role === 'user' && index === 0) {
+        try {
+          const parsed = JSON.parse(message.content);
+          if (parsed.idea && parsed.orientation && parsed.promptLanguage) {
+            setEditedSettings(parsed);
+            return;
+          }
+        } catch (e) { /* fall through */ }
+      }
+      setEditedSettings(null);
+    } else {
+      setEditedSettings(null);
+    }
+  }, [isEditing, message.content, message.role, index]);
+
+  useEffect(() => {
+    if (isEditing && !editedSettings && textareaRef.current) {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         textareaRef.current.focus();
     }
-  }, [isEditing, editedContent]);
+  }, [isEditing, editedSettings, editedContent]);
   
   const canRegenerate = message.role === 'model' && isLastMessage && !isStreaming;
 
   const renderModelContent = () => {
     const content = message.content;
-    const codeBlockRegex = /```text([\s\S]*?)```/;
-    const match = content.match(codeBlockRegex);
+    const codeBlockSplitRegex = /(```text[\s\S]*?```)/;
+    const parts = content.split(codeBlockSplitRegex);
 
-    if (!match) {
-      return (
-        <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-        </div>
-      );
-    }
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (!part || !part.trim()) return null;
+          const codeBlockMatchRegex = /```text([\s\S]*?)```/;
+          const match = part.match(codeBlockMatchRegex);
 
-    const beforeText = content.substring(0, match.index);
-    const promptText = match[1].trim();
-    const afterText = content.substring(match.index + match[0].length);
-    
-    const elements: React.ReactNode[] = [];
-
-    if (beforeText.trim()) {
-        elements.push(
-            <div key="before" className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{beforeText}</ReactMarkdown>
-            </div>
-        );
-    }
-
-    elements.push(<PromptCodeBlock key="prompt" promptText={promptText} t={t} />);
-
-    if (afterText.trim()) {
-        elements.push(
-            <div key="after" className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{afterText}</ReactMarkdown>
-            </div>
-        );
-    }
-    
-    return elements;
+          if (match) {
+            const promptText = match[1].trim();
+            return <PromptCodeBlock key={`prompt-${i}`} promptText={promptText} t={t} />;
+          } else {
+            return (
+              <div key={`text-${i}`} className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{part}</ReactMarkdown>
+              </div>
+            );
+          }
+        })}
+      </>
+    );
   };
   
   return (
     <div className="px-4 group">
       {isEditing ? (
-          <div className='py-6'>
-              <textarea
-                  ref={textareaRef}
-                  value={editedContent}
-                  onChange={(e) => setEditedContent(e.target.value)}
-                  className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm p-2 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark sm:text-sm resize-none"
-              />
-              <div className="flex gap-2 mt-2">
-                  <button onClick={handleSaveEdit} className="px-3 py-1 text-xs bg-primary dark:bg-primary-dark text-white rounded-md">{t('chat.save_button')}</button>
-                  <button onClick={handleCancelEdit} className="px-3 py-1 text-xs bg-border-light dark:bg-border-dark rounded-md">{t('chat.cancel_button')}</button>
-              </div>
-          </div>
+          editedSettings ? (
+            <InitialSettingsEditor
+              initialData={editedSettings}
+              onSave={handleSaveSettingsEdit}
+              onCancel={handleCancelEdit}
+              language={language}
+            />
+          ) : (
+            <div className='py-6'>
+                <textarea
+                    ref={textareaRef}
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm p-2 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-dark sm:text-sm resize-none"
+                />
+                <div className="flex gap-2 mt-2">
+                    <button onClick={handleSaveEdit} className="px-3 py-1 text-xs bg-primary dark:bg-primary-dark text-white rounded-md">{t('chat.save_button')}</button>
+                    <button onClick={handleCancelEdit} className="px-3 py-1 text-xs bg-border-light dark:bg-border-dark rounded-md">{t('chat.cancel_button')}</button>
+                </div>
+            </div>
+          )
       ) : (
         <div className={`py-6 flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
             {/* Avatar */}

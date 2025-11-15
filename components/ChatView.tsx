@@ -163,7 +163,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings,
         <h2 className="font-semibold text-lg">Sorafy</h2>
       </div>
       <div ref={messagesEndRef} className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           {session.messages.map((msg, index) => (
             <ChatMessage 
               key={msg.id} 
@@ -196,7 +196,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings,
         </div>
       </div>
       <div className="p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="relative flex items-center bg-surface-light dark:bg-surface-secondary-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark p-2">
             <button className="p-2 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark">
                 <PaperclipIcon className="w-5 h-5" />
