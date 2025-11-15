@@ -76,6 +76,7 @@ export const getStreamingResponse = async (
 
   const lastMessage = history[history.length - 1];
   const lastMessageParts: (string | Part)[] = [{ text: lastMessage.content }];
+  
   let isFirstMessageProcessed = false;
   
   // Only try to parse JSON if this is the first message
@@ -100,8 +101,21 @@ export const getStreamingResponse = async (
   
   // If not first message or first message processing failed, add context
   if (!isFirstMessageProcessed) {
+    // Determine which settings to use for context
+    let contextSettings = initialSettings;
+    const firstUserMessage = history.find(msg => msg.role === 'user');
+    if (firstUserMessage) {
+        try {
+            const parsed = JSON.parse(firstUserMessage.content);
+            if (parsed.promptLanguage && parsed.orientation && parsed.duration) {
+                contextSettings = parsed;
+            }
+        } catch(e) {
+            // Not JSON or doesn't have required fields, fall back to initialSettings
+        }
+    }
     const uiLanguage = settings.language === 'zh' ? '中文' : 'English';
-    const contextText = `(System Note: Language for prompt: ${initialSettings.promptLanguage}\nOrientation: ${initialSettings.orientation}\nDuration: ${initialSettings.duration} seconds.\nLanguage for conversational response: ${uiLanguage}. Don't describe them in prompt directly, just use them as context.)`;
+    const contextText = `(System Note: Language for prompt: ${contextSettings.promptLanguage}\nOrientation: ${contextSettings.orientation}\nDuration: ${contextSettings.duration} seconds.\nLanguage for conversational response: ${uiLanguage}. Don't describe them in prompt directly, just use them as context.)`;
     lastMessageParts.push({ text: contextText });
   }
 

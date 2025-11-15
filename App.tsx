@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
 import { Session, AppSettings, InitialSettings } from './types';
 import HistorySidebar from './components/HistorySidebar';
@@ -17,6 +17,7 @@ const App: React.FC = () => {
     debugMode: false,
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNewSession, setIsNewSession] = useState(false);
 
   const t = (key: keyof typeof translations.en) => translations[settings.language][key] || key;
 
@@ -56,6 +57,7 @@ const App: React.FC = () => {
 
     setSessions(prev => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
+    setIsNewSession(true);
   };
   
   const handleUpdateSession = (updatedSession: Session) => {
@@ -64,6 +66,7 @@ const App: React.FC = () => {
   
   const handleSelectSession = (id: string) => {
     setCurrentSessionId(id);
+    setIsNewSession(false);
     if (window.matchMedia('(max-width: 768px)').matches) {
         setIsSidebarOpen(false);
     }
@@ -71,6 +74,7 @@ const App: React.FC = () => {
   
   const handleNewSession = () => {
     setCurrentSessionId(null);
+    setIsNewSession(false);
     if (window.matchMedia('(max-width: 768px)').matches) {
         setIsSidebarOpen(false);
     }
@@ -135,6 +139,10 @@ const App: React.FC = () => {
       setSessions(prev => [...newSessions, ...prev]);
       alert(t('sidebar.import.success').replace('{count}', newSessions.length.toString()));
   };
+  
+  const handleNewSessionHandled = useCallback(() => {
+    setIsNewSession(false);
+  }, []);
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-bkg-light dark:bg-bkg-dark p-0 md:p-4 flex items-center justify-center">
@@ -171,6 +179,8 @@ const App: React.FC = () => {
               session={currentSession}
               onUpdateSession={handleUpdateSession}
               settings={settings}
+              isNewSession={isNewSession}
+              onNewSessionHandled={handleNewSessionHandled}
             />
           ) : (
             <InitialSetup onGenerate={createNewSession} language={settings.language} />

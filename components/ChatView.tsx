@@ -3,15 +3,17 @@ import { Session, Message, Language, AppSettings } from '../types';
 import { translations } from '../constants';
 import { getStreamingResponse } from '../services/geminiService';
 import ChatMessage from './ChatMessage';
-import { ArrowUpIcon, PaperclipIcon } from './icons';
+import { ArrowUpIcon, PaperclipIcon, GeminiIcon } from './icons';
 
 interface ChatViewProps {
   session: Session;
   onUpdateSession: (session: Session) => void;
   settings: AppSettings;
+  isNewSession: boolean;
+  onNewSessionHandled: () => void;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings }) => {
+const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings, isNewSession, onNewSessionHandled }) => {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -87,27 +89,34 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
 
 
   const handleSendMessage = useCallback(async () => {
-    if (isStreaming || !input.trim()) return;
+    if (isStreaming) return;
     
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: Date.now(),
-    };
-    const newMessages = [...session.messages, userMessage];
-    onUpdateSession({ ...session, messages: newMessages });
-    setInput('');
-
-    await generateResponse(newMessages);
+    if (input.trim()) {
+        const userMessage: Message = {
+          id: Date.now().toString(),
+          role: 'user',
+          content: input,
+          timestamp: Date.now(),
+        };
+        const newMessages = [...session.messages, userMessage];
+        onUpdateSession({ ...session, messages: newMessages });
+        setInput('');
+        await generateResponse(newMessages);
+    } else {
+        const lastMessage = session.messages[session.messages.length - 1];
+        if (lastMessage?.role === 'user') {
+            await generateResponse(session.messages);
+        }
+    }
   }, [input, isStreaming, session, onUpdateSession, generateResponse]);
 
   useEffect(() => {
-     if (session.messages.length === 1 && session.messages[0].role === 'user') {
+     if (isNewSession && session.messages.length === 1 && session.messages[0].role === 'user') {
       generateResponse(session.messages);
+      onNewSessionHandled();
     }
-  // eslint-disable-next-line react-hooks-exhaustive-deps
-  }, [session.id]); // Only runs when session ID changes (i.e., new session is created)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.id, isNewSession, generateResponse, onNewSessionHandled]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -122,11 +131,8 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
   }, [handleSendMessage, isStreaming]);
 
   const handleDeleteMessage = (messageId: string) => {
-    const messageIndex = session.messages.findIndex(m => m.id === messageId);
-    if (messageIndex > -1) {
-      const newMessages = session.messages.slice(0, messageIndex);
-      onUpdateSession({ ...session, messages: newMessages });
-    }
+    const newMessages = session.messages.filter(m => m.id !== messageId);
+    onUpdateSession({ ...session, messages: newMessages });
   };
 
   const handleEditMessage = (messageId: string, newContent: string) => {
@@ -134,11 +140,7 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     if (messageIndex > -1) {
       const newMessages = [...session.messages];
       newMessages[messageIndex].content = newContent;
-      const finalMessages = newMessages.slice(0, messageIndex + 1);
-      onUpdateSession({...session, messages: finalMessages });
-      if (newMessages[messageIndex].role === 'user') {
-        generateResponse(finalMessages);
-      }
+      onUpdateSession({...session, messages: newMessages });
     }
   };
 
@@ -152,7 +154,8 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
     }
   };
 
-  const canSendMessage = !isStreaming && !!input.trim();
+  const lastMessageIsUser = session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'user';
+  const canSendMessage = !isStreaming && (!!input.trim() || lastMessageIsUser);
 
   return (
     <div className="flex flex-col h-full text-text-primary-light dark:text-text-primary-dark">
@@ -175,14 +178,19 @@ const ChatView: React.FC<ChatViewProps> = ({ session, onUpdateSession, settings 
               />
           ))}
            {isStreaming && session.messages[session.messages.length - 1]?.role === 'user' && (
-              <div className="flex justify-end p-4">
-                  <div className="bg-surface-light dark:bg-surface-dark rounded-xl rounded-br-none p-4 shadow-soft">
+              <div className="px-4">
+                <div className="py-6 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-slate-100 dark:bg-slate-800">
+                    <GeminiIcon className="w-5 h-5 text-slate-600 dark:text-slate-300"/>
+                  </div>
+                  <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none shadow-soft p-4">
                       <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse [animation-delay:0.2s]"></div>
-                          <div className="w-2 h-2 bg-text-secondary-light rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                          <div className="w-2 h-2 bg-text-secondary-light dark:bg-text-secondary-dark rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-text-secondary-light dark:bg-text-secondary-dark rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                          <div className="w-2 h-2 bg-text-secondary-light dark:bg-text-secondary-dark rounded-full animate-pulse [animation-delay:0.4s]"></div>
                       </div>
                   </div>
+                </div>
               </div>
           )}
         </div>

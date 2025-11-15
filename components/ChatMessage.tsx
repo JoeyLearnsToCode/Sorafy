@@ -61,10 +61,33 @@ const InitialSettingsDetails: React.FC<{ data: any; t: (key: keyof typeof transl
     );
 };
 
+const PromptCodeBlock: React.FC<{ promptText: string, t: (key: keyof typeof translations.en) => string; }> = ({ promptText, t }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(promptText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center px-4 py-2 bg-surface-light dark:bg-surface-dark">
+                <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
+                <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary-dark hover:opacity-80">
+                    {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
+                    {copied ? t('chat.copied_message') : t('chat.copy_button')}
+                </button>
+            </div>
+            <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left bg-surface-secondary-light dark:bg-surface-secondary-dark"><code>{promptText}</code></pre>
+        </div>
+    );
+};
+
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isLastMessage, isStreaming, onDelete, onEdit, onRegenerate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
-  const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const t = (key: keyof typeof translations.en) => translations[language][key] || key;
   
@@ -99,6 +122,46 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
   }, [isEditing, editedContent]);
   
   const canRegenerate = message.role === 'model' && isLastMessage && !isStreaming;
+
+  const renderModelContent = () => {
+    const content = message.content;
+    const codeBlockRegex = /```text([\s\S]*?)```/;
+    const match = content.match(codeBlockRegex);
+
+    if (!match) {
+      return (
+        <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        </div>
+      );
+    }
+
+    const beforeText = content.substring(0, match.index);
+    const promptText = match[1].trim();
+    const afterText = content.substring(match.index + match[0].length);
+    
+    const elements: React.ReactNode[] = [];
+
+    if (beforeText.trim()) {
+        elements.push(
+            <div key="before" className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{beforeText}</ReactMarkdown>
+            </div>
+        );
+    }
+
+    elements.push(<PromptCodeBlock key="prompt" promptText={promptText} t={t} />);
+
+    if (afterText.trim()) {
+        elements.push(
+            <div key="after" className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{afterText}</ReactMarkdown>
+            </div>
+        );
+    }
+    
+    return elements;
+  };
   
   return (
     <div className="px-4 group">
@@ -146,43 +209,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, index, language, isL
 
                     {/* AI Bubble */}
                     {message.role === 'model' && (
-                        <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none shadow-soft overflow-hidden">
-                           {message.content.split(/(```text[\s\S]*?```)/).filter(p => p.trim()).map((part, partIndex) => {
-                                const promptMatch = part.match(/```text([\s\S]*?)```/);
-                                const borderClass = partIndex > 0 ? 'border-t border-border-light dark:border-border-dark' : '';
-
-                                if (promptMatch) {
-                                    const promptText = promptMatch[1].trim();
-                                    const handleCopy = () => {
-                                        if (promptText) {
-                                          navigator.clipboard.writeText(promptText);
-                                          setCopied(true);
-                                          setTimeout(() => setCopied(false), 2000);
-                                        }
-                                    };
-
-                                    return (
-                                        <div key={partIndex} className={borderClass}>
-                                            <div className="flex justify-between items-center px-4 py-2 bg-surface-light dark:bg-surface-dark">
-                                                <span className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark">Sora-2 Prompt</span>
-                                                <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary-dark hover:opacity-80">
-                                                    {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
-                                                    {copied ? t('chat.copied_message') : t('chat.copy_button')}
-                                                </button>
-                                            </div>
-                                            <pre className="p-4 text-sm whitespace-pre-wrap overflow-x-auto font-mono text-left bg-surface-secondary-light dark:bg-surface-secondary-dark"><code>{promptText}</code></pre>
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div key={partIndex} className={borderClass}>
-                                        <div className="prose prose-sm dark:prose-invert max-w-none text-text-primary-light dark:text-text-primary-dark break-words text-left p-4">
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{part}</ReactMarkdown>
-                                        </div>
-                                    </div>
-                                );
-                           })}
+                        <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl rounded-tl-none shadow-soft overflow-hidden divide-y divide-border-light dark:divide-border-dark">
+                           {renderModelContent()}
                         </div>
                     )}
                 </div>
